@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import type { SyntaxHighlighterProps } from 'react-syntax-highlighter';
+
+const SyntaxHighlighterComponent =
+  SyntaxHighlighter as React.ComponentType<SyntaxHighlighterProps>;
 
 interface FileViewerProps {
   path: string;
@@ -70,14 +74,14 @@ export function FileViewer({
               className="w-full h-full p-4 font-mono text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
           ) : (
-            <SyntaxHighlighter
+            <SyntaxHighlighterComponent
               language={language}
               style={vscDarkPlus}
               showLineNumbers
               customStyle={{ margin: 0, borderRadius: '0.5rem' }}
             >
               {content}
-            </SyntaxHighlighter>
+            </SyntaxHighlighterComponent>
           )}
         </div>
       </div>

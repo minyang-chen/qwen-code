@@ -25,6 +25,8 @@ export function ChatContainer() {
     appendToCurrentMessage,
     finalizeCurrentMessage,
     setStreaming,
+    deleteMessage,
+    updateMessage,
     openFile,
     closeFile,
     updateFileContent,
@@ -158,6 +160,53 @@ export function ChatContainer() {
     if (!currentFile || !socket) return;
     updateFileContent(content);
     socket.emit('file:save', { path: currentFile.path, content });
+  };
+
+  const handleEditMessage = (messageId: string, content: string) => {
+    updateMessage(messageId, content);
+  };
+
+  const handleRegenerateMessage = (messageId: string) => {
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
+    if (messageIndex === -1) return;
+
+    // Find the last user message before this assistant message
+    const userMessage = messages
+      .slice(0, messageIndex)
+      .reverse()
+      .find((m) => m.role === 'user');
+
+    if (userMessage && socket && sessionId) {
+      // Delete messages from the assistant message onwards
+      const messagesToDelete = messages.slice(messageIndex);
+      messagesToDelete.forEach((m) => deleteMessage(m.id));
+
+      // Resend the user message
+      setStreaming(true);
+      socket.emit('chat:message', { sessionId, message: userMessage.content });
+    }
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    deleteMessage(messageId);
+  };
+
+  const handleResendMessage = (messageId: string, content: string) => {
+    if (!socket || !sessionId) return;
+
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
+    if (messageIndex === -1) return;
+
+    // Update the message content
+    updateMessage(messageId, content);
+
+    // Delete all messages after this one
+    const messagesToDelete = messages.slice(messageIndex + 1);
+    messagesToDelete.forEach((m) => deleteMessage(m.id));
+
+    // Resend with new content
+    setStreaming(true);
+    socket.emit('chat:message', { sessionId, message: content });
   };
 
   return (
@@ -310,7 +359,14 @@ export function ChatContainer() {
         )}
       </header>
 
-      <MessageList messages={messages} currentMessage={currentMessage} />
+      <MessageList
+        messages={messages}
+        currentMessage={currentMessage}
+        onEdit={handleEditMessage}
+        onRegenerate={handleRegenerateMessage}
+        onDelete={handleDeleteMessage}
+        onResend={handleResendMessage}
+      />
 
       <MessageInput
         onSend={handleSend}

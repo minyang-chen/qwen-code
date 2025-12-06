@@ -1,13 +1,21 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { Message } from '../store/chatStore';
+import type { SyntaxHighlighterProps } from 'react-syntax-highlighter';
+
+const SyntaxHighlighterComponent =
+  SyntaxHighlighter as React.ComponentType<SyntaxHighlighterProps>;
 
 interface MessageListProps {
   messages: Message[];
   currentMessage: string;
+  onEdit?: (messageId: string, content: string) => void;
+  onRegenerate?: (messageId: string) => void;
+  onDelete?: (messageId: string) => void;
+  onResend?: (messageId: string, content: string) => void;
 }
 
 const cleanContent = (content: string) => {
@@ -30,7 +38,189 @@ const hasToolExecution = (content: string) => {
   return /<tool_call>|<function=/.test(content);
 };
 
-export function MessageList({ messages, currentMessage }: MessageListProps) {
+interface MessageActionsProps {
+  message: Message;
+  isUser: boolean;
+  onEdit?: (messageId: string, content: string) => void;
+  onRegenerate?: (messageId: string) => void;
+  onDelete?: (messageId: string) => void;
+  onResend?: (messageId: string, content: string) => void;
+}
+
+function MessageActions({
+  message,
+  isUser,
+  onEdit,
+  onRegenerate,
+  onDelete,
+  onResend,
+}: MessageActionsProps) {
+  const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(message.content);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleEdit = () => {
+    if (isEditing) {
+      onEdit?.(message.id, editContent);
+      setIsEditing(false);
+    } else {
+      setIsEditing(true);
+    }
+  };
+
+  const handleResend = () => {
+    onResend?.(message.id, editContent);
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditContent(message.content);
+    setIsEditing(false);
+  };
+
+  const handleRegenerate = () => {
+    onRegenerate?.(message.id);
+  };
+
+  const handleDelete = () => {
+    if (confirm('Delete this message?')) {
+      onDelete?.(message.id);
+    }
+  };
+
+  const iconClass = `w-4 h-4 cursor-pointer transition-opacity hover:opacity-70 ${isUser ? 'text-white' : 'text-gray-600'}`;
+
+  if (isEditing) {
+    return (
+      <div
+        className="mt-2 pt-2 border-t border-opacity-20"
+        style={{ borderColor: isUser ? 'white' : '#e5e7eb' }}
+      >
+        <textarea
+          value={editContent}
+          onChange={(e) => setEditContent(e.target.value)}
+          className="w-full p-2 border rounded text-sm text-gray-900 bg-white"
+          rows={3}
+        />
+        <div className="flex gap-2 mt-2">
+          {isUser ? (
+            <>
+              <button
+                onClick={handleResend}
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              >
+                Send
+              </button>
+              <button
+                onClick={handleEdit}
+                className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700"
+              >
+                Save Only
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleEdit}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+            >
+              Save
+            </button>
+          )}
+          <button
+            onClick={handleCancelEdit}
+            className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="flex items-center gap-2 mt-2 pt-2 border-t border-opacity-20"
+      style={{ borderColor: isUser ? 'white' : '#e5e7eb' }}
+    >
+      <button
+        onClick={handleCopy}
+        title={copied ? 'Copied!' : 'Copy'}
+        className={iconClass}
+      >
+        {copied ? (
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        ) : (
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+        )}
+      </button>
+      <button onClick={handleEdit} title="Edit" className={iconClass}>
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
+        </svg>
+      </button>
+      {!isUser && (
+        <button
+          onClick={handleRegenerate}
+          title="Regenerate"
+          className={iconClass}
+        >
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+        </button>
+      )}
+      <button onClick={handleDelete} title="Delete" className={iconClass}>
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+export function MessageList({
+  messages,
+  currentMessage,
+  onEdit,
+  onRegenerate,
+  onDelete,
+  onResend,
+}: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,7 +248,7 @@ export function MessageList({ messages, currentMessage }: MessageListProps) {
                   code({ inline, className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '');
                     return !inline && match ? (
-                      <SyntaxHighlighter
+                      <SyntaxHighlighterComponent
                         style={vscDarkPlus}
                         language={match[1]}
                         PreTag="div"
@@ -66,7 +256,7 @@ export function MessageList({ messages, currentMessage }: MessageListProps) {
                         {...props}
                       >
                         {String(children).replace(/\n$/, '')}
-                      </SyntaxHighlighter>
+                      </SyntaxHighlighterComponent>
                     ) : (
                       <code
                         className={`${className} px-1.5 py-0.5 rounded ${msg.role === 'user' ? 'bg-white/20' : 'bg-gray-100'}`}
@@ -186,6 +376,14 @@ export function MessageList({ messages, currentMessage }: MessageListProps) {
               >
                 {cleanContent(msg.content)}
               </ReactMarkdown>
+              <MessageActions
+                message={msg}
+                isUser={msg.role === 'user'}
+                onEdit={onEdit}
+                onRegenerate={onRegenerate}
+                onDelete={onDelete}
+                onResend={onResend}
+              />
             </div>
           </div>
         ))}

@@ -51,6 +51,8 @@ interface ChatStore {
   finalizeCurrentMessage: () => void;
   setStreaming: (streaming: boolean) => void;
   clearMessages: () => void;
+  deleteMessage: (id: string) => void;
+  updateMessage: (id: string, content: string) => void;
   addPendingToolCall: (toolCall: ToolCall) => void;
   approveToolCall: (id: string) => void;
   rejectToolCall: (id: string) => void;
@@ -113,6 +115,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   setStreaming: (streaming) => set({ isStreaming: streaming }),
 
   clearMessages: () => set({ messages: [], currentMessage: '' }),
+
+  deleteMessage: (id) =>
+    set((state) => ({ messages: state.messages.filter((m) => m.id !== id) })),
+
+  updateMessage: (id, content) =>
+    set((state) => ({
+      messages: state.messages.map((m) =>
+        m.id === id ? { ...m, content } : m,
+      ),
+    })),
 
   addPendingToolCall: (toolCall) =>
     set((state) => ({
