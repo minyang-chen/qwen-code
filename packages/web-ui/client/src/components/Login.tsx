@@ -101,7 +101,7 @@ export function Login() {
       });
 
       if (res.ok) {
-        window.location.reload();
+        window.location.href = '/';
       } else {
         alert('Login failed. Please check your credentials.');
       }
@@ -119,7 +119,7 @@ export function Login() {
       });
 
       if (res.ok) {
-        window.location.reload();
+        window.location.href = '/';
       }
     } catch (error) {
       console.error('Login failed:', error);

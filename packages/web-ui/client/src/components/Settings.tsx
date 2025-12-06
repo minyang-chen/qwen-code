@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -11,12 +11,32 @@ interface SettingsData {
   vlmSwitchMode: 'once' | 'session' | 'persist' | 'ask';
 }
 
+interface AuthInfo {
+  loginType: string;
+  baseUrl: string | null;
+  model: string | null;
+}
+
 export function Settings({ isOpen, onClose }: SettingsProps) {
   const [settings, setSettings] = useState<SettingsData>({
     sessionTokenLimit: 32000,
     visionModelPreview: true,
     vlmSwitchMode: 'ask',
   });
+  const [authInfo, setAuthInfo] = useState<AuthInfo | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setAuthInfo(null); // Clear previous data
+      fetch('/api/auth/info', {
+        credentials: 'include',
+        cache: 'no-store',
+      })
+        .then((res) => res.json())
+        .then((data) => setAuthInfo(data))
+        .catch(() => setAuthInfo(null));
+    }
+  }, [isOpen]);
 
   const handleSave = () => {
     // Save to localStorage or send to server
@@ -37,6 +57,39 @@ export function Settings({ isOpen, onClose }: SettingsProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Authentication Info */}
+          {authInfo && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                Connection Information
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">Login Type:</span>
+                  <span className="text-xs font-medium text-gray-900">
+                    {authInfo.loginType === 'openai'
+                      ? 'OpenAI Compatible'
+                      : 'Qwen OAuth'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">Base URL:</span>
+                  <span className="text-xs font-medium text-gray-900 truncate ml-2">
+                    {authInfo.baseUrl || 'N/A'}
+                  </span>
+                </div>
+                {authInfo.model && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-600">Model:</span>
+                    <span className="text-xs font-medium text-gray-900">
+                      {authInfo.model}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Session Token Limit */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">

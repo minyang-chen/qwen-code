@@ -69,14 +69,28 @@ async function refreshAccessToken(
   }
 }
 
-function verifyToken(
-  token: string,
-): { userId: string; accessToken?: string; refreshToken?: string } | null {
+function verifyToken(token: string): {
+  userId: string;
+  accessToken?: string;
+  refreshToken?: string;
+  credentials?: {
+    type: string;
+    apiKey?: string;
+    baseUrl?: string;
+    model?: string;
+  };
+} | null {
   try {
     return jwt.verify(token, JWT_SECRET) as {
       userId: string;
       accessToken?: string;
       refreshToken?: string;
+      credentials?: {
+        type: string;
+        apiKey?: string;
+        baseUrl?: string;
+        model?: string;
+      };
     };
   } catch {
     return null;
@@ -289,6 +303,13 @@ app.post('/api/auth/login/openai', async (request, reply) => {
     expiresIn: '7d',
   });
 
+  console.log('OpenAI Login - Setting cookie with credentials:', {
+    userId,
+    type: credentials.type,
+    baseUrl: credentials.baseUrl,
+    model: credentials.model,
+  });
+
   reply.setCookie('auth_token', token, {
     httpOnly: true,
     secure: false,
@@ -300,8 +321,50 @@ app.post('/api/auth/login/openai', async (request, reply) => {
   return { userId, token };
 });
 
+app.get('/api/auth/info', async (request, reply) => {
+  const token = request.cookies.auth_token;
+  console.log(
+    'Auth info - received cookie token (first 50 chars):',
+    token?.substring(0, 50),
+  );
+
+  const user = token ? verifyToken(token) : null;
+
+  if (!user) {
+    return reply.code(401).send({ error: 'Unauthorized' });
+  }
+
+  console.log('Auth info - user object:', JSON.stringify(user, null, 2));
+
+  const credentials = user.credentials as
+    | { type: 'openai'; baseUrl?: string; model?: string }
+    | undefined;
+
+  const isQwenOAuth = !credentials || credentials.type !== 'openai';
+
+  const result = {
+    loginType: isQwenOAuth ? 'qwen-oauth' : 'openai',
+    baseUrl: isQwenOAuth ? 'https://chat.qwen.ai/api/v1' : credentials.baseUrl,
+    model: isQwenOAuth ? null : credentials.model,
+  };
+
+  console.log('Auth info - returning:', JSON.stringify(result, null, 2));
+
+  return result;
+});
+
 app.post('/api/auth/logout', async (request, reply) => {
-  reply.clearCookie('auth_token', { path: '/' });
+  console.log('Logout - clearing auth_token cookie');
+
+  // Force expire the cookie by setting it to empty with past expiration
+  reply.setCookie('auth_token', '', {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
+    path: '/',
+    expires: new Date(0), // Set to epoch time (Jan 1, 1970)
+  });
+
   return { success: true };
 });
 

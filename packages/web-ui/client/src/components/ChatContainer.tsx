@@ -5,6 +5,7 @@ import { ToolApproval } from './ToolApproval';
 import { FileViewer } from './FileViewer';
 import { Settings } from './Settings';
 import { SessionSidebar } from './SessionSidebar';
+import { StatusBar } from './StatusBar';
 import { useChatStore } from '../store/chatStore';
 import { useWebSocket } from '../hooks/useWebSocket';
 
@@ -292,6 +293,8 @@ export function ChatContainer() {
         onCancel={handleCancel}
         disabled={isStreaming}
       />
+
+      <StatusBar />
 
       <ToolApproval />
 
