@@ -10,6 +10,7 @@ export interface Session {
   id: string;
   userId: string;
   client: Client;
+  config: Config;
   createdAt: Date;
   lastActivity: Date;
 }
@@ -138,6 +139,7 @@ export class SessionManager {
       id: sessionId,
       userId,
       client,
+      config,
       createdAt: new Date(),
       lastActivity: new Date(),
     };

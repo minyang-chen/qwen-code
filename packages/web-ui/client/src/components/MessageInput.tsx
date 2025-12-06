@@ -1,4 +1,4 @@
-import { useState, KeyboardEvent } from 'react';
+import { useState, KeyboardEvent, useRef, useEffect } from 'react';
 
 interface MessageInputProps {
   onSend: (message: string) => void;
@@ -12,6 +12,13 @@ export function MessageInput({
   disabled,
 }: MessageInputProps) {
   const [input, setInput] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!disabled) {
+      textareaRef.current?.focus();
+    }
+  }, [disabled]);
 
   const handleSend = () => {
     if (input.trim() && !disabled) {
@@ -32,6 +39,7 @@ export function MessageInput({
       <div className="max-w-5xl mx-auto p-4">
         <div className="flex gap-3">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
