@@ -16,7 +16,10 @@ export function MessageInput({
 
   useEffect(() => {
     if (!disabled) {
-      textareaRef.current?.focus();
+      // Small delay to ensure DOM is ready and other updates complete
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
     }
   }, [disabled]);
 
