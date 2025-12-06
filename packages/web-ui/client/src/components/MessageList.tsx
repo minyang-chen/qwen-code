@@ -12,10 +12,18 @@ interface MessageListProps {
 
 const cleanContent = (content: string) => {
   // Remove tool_call tags and incomplete tool syntax
-  return content
+  let cleaned = content
     .replace(/<tool_call>[\s\S]*$/i, '')
     .replace(/<function=[^>]*$/i, '')
     .trim();
+
+  // If content is wrapped in markdown code block, extract it
+  const markdownBlockMatch = cleaned.match(/^```markdown\n([\s\S]*?)\n```$/);
+  if (markdownBlockMatch) {
+    cleaned = markdownBlockMatch[1];
+  }
+
+  return cleaned;
 };
 
 const hasToolExecution = (content: string) => {
