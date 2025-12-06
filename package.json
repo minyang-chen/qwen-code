@@ -1,19 +1,21 @@
 {
   "name": "@qwen-code/qwen-code",
-  "version": "0.4.0",
+  "version": "0.3.0",
   "engines": {
     "node": ">=20.0.0"
   },
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "packages/web-ui/server",
+    "packages/web-ui/client"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/QwenLM/qwen-code.git"
   },
   "config": {
-    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.4.0"
+    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.3.0"
   },
   "scripts": {
     "start": "cross-env node scripts/start.js",
@@ -28,6 +30,9 @@
     "build:all": "npm run build && npm run build:sandbox && npm run build:vscode",
     "build:packages": "npm run build --workspaces",
     "build:sandbox": "node scripts/build_sandbox.js",
+    "web-ui:server": "npm run dev --workspace=@qwen-code/web-ui-server",
+    "web-ui:client": "npm run dev --workspace=@qwen-code/web-ui-client",
+    "web-ui:dev": "npm run web-ui:server & npm run web-ui:client",
     "bundle": "npm run generate && node esbuild.config.js && node scripts/copy_bundle_assets.js",
     "test": "npm run test --workspaces --if-present --parallel",
     "test:ci": "npm run test:ci --workspaces --if-present --parallel && npm run test:scripts",
@@ -37,10 +42,6 @@
     "test:integration:sandbox:none": "cross-env GEMINI_SANDBOX=false vitest run --root ./integration-tests",
     "test:integration:sandbox:docker": "cross-env GEMINI_SANDBOX=docker npm run build:sandbox && GEMINI_SANDBOX=docker vitest run --root ./integration-tests",
     "test:integration:sandbox:podman": "cross-env GEMINI_SANDBOX=podman vitest run --root ./integration-tests",
-    "test:integration:sdk:sandbox:none": "cross-env GEMINI_SANDBOX=false vitest run --root ./integration-tests sdk-typescript",
-    "test:integration:sdk:sandbox:docker": "cross-env GEMINI_SANDBOX=docker npm run build:sandbox && GEMINI_SANDBOX=docker vitest run --root ./integration-tests sdk-typescript",
-    "test:integration:cli:sandbox:none": "cross-env GEMINI_SANDBOX=false vitest run --root ./integration-tests --exclude '**/sdk-typescript/**'",
-    "test:integration:cli:sandbox:docker": "cross-env GEMINI_SANDBOX=docker npm run build:sandbox && GEMINI_SANDBOX=docker vitest run --root ./integration-tests --exclude '**/sdk-typescript/**'",
     "test:terminal-bench": "cross-env VERBOSE=true KEEP_OUTPUT=true vitest run --config ./vitest.terminal-bench.config.ts --root ./integration-tests",
     "test:terminal-bench:oracle": "cross-env VERBOSE=true KEEP_OUTPUT=true vitest run --config ./vitest.terminal-bench.config.ts --root ./integration-tests -t 'oracle'",
     "test:terminal-bench:qwen": "cross-env VERBOSE=true KEEP_OUTPUT=true vitest run --config ./vitest.terminal-bench.config.ts --root ./integration-tests -t 'qwen'",
@@ -115,7 +116,8 @@
   },
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
-    "simple-git": "^3.28.0"
+    "simple-git": "^3.28.0",
+    "@cfworker/json-schema": "^4.1.1"
   },
   "optionalDependencies": {
     "@lydell/node-pty": "1.1.0",

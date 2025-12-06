@@ -19,6 +19,8 @@ ENV PATH=$PATH:/usr/local/share/npm-global/bin
 COPY . /home/node/app
 WORKDIR /home/node/app
 
+COPY package*.json ./
+
 # Install dependencies and build packages
 RUN npm ci \
   && npm run build --workspaces \
@@ -50,6 +52,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   procps \
   psmisc \
   lsof \
+  vim \
   socat \
   ca-certificates \
   && apt-get clean \
@@ -68,6 +71,8 @@ COPY --from=builder /home/node/app/packages/core/dist/*.tgz /tmp/
 RUN npm install -g /tmp/*.tgz \
   && npm cache clean --force \
   && rm -rf /tmp/*.tgz
+
+WORKDIR /home/node/app
 
 # Default entrypoint when none specified
 CMD ["qwen"]
