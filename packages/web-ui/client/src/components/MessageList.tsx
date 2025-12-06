@@ -4,10 +4,9 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { Message } from '../store/chatStore';
-import type { SyntaxHighlighterProps } from 'react-syntax-highlighter';
 
-const SyntaxHighlighterComponent =
-  SyntaxHighlighter as React.ComponentType<SyntaxHighlighterProps>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SyntaxHighlighterComponent = SyntaxHighlighter as any;
 
 interface MessageListProps {
   messages: Message[];
@@ -376,6 +375,43 @@ export function MessageList({
               >
                 {cleanContent(msg.content)}
               </ReactMarkdown>
+              {msg.files && msg.files.length > 0 && (
+                <div
+                  className="mt-3 pt-3 border-t border-opacity-20 space-y-2"
+                  style={{
+                    borderColor: msg.role === 'user' ? 'white' : '#e5e7eb',
+                  }}
+                >
+                  {msg.files.map((file, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                        msg.role === 'user'
+                          ? 'bg-white/20 text-white'
+                          : 'bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      <svg
+                        className="w-4 h-4 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                        />
+                      </svg>
+                      <span className="text-sm truncate">{file.name}</span>
+                      <span className="text-xs opacity-70">
+                        ({(file.size / 1024).toFixed(1)} KB)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <MessageActions
                 message={msg}
                 isUser={msg.role === 'user'}

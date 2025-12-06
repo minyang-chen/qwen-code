@@ -6,7 +6,7 @@ import { FileViewer } from './FileViewer';
 import { Settings } from './Settings';
 import { SessionSidebar } from './SessionSidebar';
 import { StatusBar } from './StatusBar';
-import { useChatStore } from '../store/chatStore';
+import { useChatStore, type FileAttachment } from '../store/chatStore';
 import { useWebSocket } from '../hooks/useWebSocket';
 
 export function ChatContainer() {
@@ -135,7 +135,7 @@ export function ChatContainer() {
     }
   };
 
-  const handleSend = (message: string) => {
+  const handleSend = (message: string, files?: FileAttachment[]) => {
     if (!sessionId || !socket) return;
 
     addMessage({
@@ -143,10 +143,11 @@ export function ChatContainer() {
       role: 'user',
       content: message,
       timestamp: new Date(),
+      files,
     });
 
     setStreaming(true);
-    socket.emit('chat:message', { sessionId, message });
+    socket.emit('chat:message', { sessionId, message, files });
   };
 
   const handleCancel = () => {

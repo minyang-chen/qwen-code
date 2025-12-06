@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import type { SyntaxHighlighterProps } from 'react-syntax-highlighter';
 
-const SyntaxHighlighterComponent =
-  SyntaxHighlighter as React.ComponentType<SyntaxHighlighterProps>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SyntaxHighlighterComponent = SyntaxHighlighter as any;
 
 interface FileViewerProps {
   path: string;

@@ -1,8 +1,10 @@
-import type { GeminiClient as Client, Part } from '@qwen-code/core';
+import type { GeminiClient as Client } from '@qwen-code/core';
 import type { Socket } from 'socket.io';
 import { nanoid } from 'nanoid';
 import type { ToolCallRequestInfo } from '@qwen-code/core';
 import { ToolExecutor } from './ToolExecutor.js';
+
+type Part = { text?: string; inlineData?: { mimeType: string; data: string } };
 
 export class ClientAdapter {
   private toolExecutor: ToolExecutor;

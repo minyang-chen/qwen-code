@@ -7,12 +7,20 @@ export interface ToolCall {
   status: 'pending' | 'approved' | 'rejected';
 }
 
+export interface FileAttachment {
+  name: string;
+  type: string;
+  size: number;
+  data: string; // base64 encoded
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
   toolCalls?: ToolCall[];
+  files?: FileAttachment[];
 }
 
 export interface FileView {
