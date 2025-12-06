@@ -1,4 +1,4 @@
-import type { GeminiClient as Client } from '@qwen-code/core';
+import type { GeminiClient as Client, Part } from '@qwen-code/core';
 import type { Socket } from 'socket.io';
 import { nanoid } from 'nanoid';
 import type { ToolCallRequestInfo } from '@qwen-code/core';
@@ -15,7 +15,7 @@ export class ClientAdapter {
   }
 
   async sendMessage(
-    message: string,
+    message: string | Part[],
     socket: Socket,
     signal?: AbortSignal,
     isContinuation: boolean = false,
@@ -89,12 +89,7 @@ export class ClientAdapter {
         // Submit tool responses back to continue conversation
         const responseParts = toolResults.flatMap((r) => r.responseParts);
 
-        await this.sendMessage(
-          responseParts as unknown as string,
-          socket,
-          signal,
-          true,
-        );
+        await this.sendMessage(responseParts, socket, signal, true);
         return;
       }
 
