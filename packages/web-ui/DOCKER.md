@@ -9,6 +9,10 @@ docker-compose up -d
 
 Access the web UI at: http://localhost
 
+## Important Note
+
+The Docker build requires the monorepo context because the server depends on `@qwen-code/core`. The `docker-compose.yml` is configured to build from the repository root (`context: ../..`).
+
 ## Configuration
 
 1. Copy the example environment file:
@@ -47,15 +51,18 @@ docker-compose up -d
 
 ## Building Images
 
-Build individual images:
+Build individual images from the repository root:
 
 ```bash
+# From repository root (qwen-code/)
 # Server
-docker build -t qwen-code-server ./server
+docker build -f packages/web-ui/server/Dockerfile -t qwen-code-server .
 
 # Client
-docker build -t qwen-code-client ./client
+docker build -f packages/web-ui/client/Dockerfile -t qwen-code-client .
 ```
+
+The build context must be the repository root to include the `@qwen-code/core` package.
 
 ## Volumes
 

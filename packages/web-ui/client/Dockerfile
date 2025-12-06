@@ -2,24 +2,27 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy root package files
 COPY package*.json ./
+COPY packages/web-ui/client/package*.json ./packages/web-ui/client/
 
 # Install dependencies
 RUN npm ci
 
-# Copy source and build
-COPY . .
-RUN npm run build
+# Copy client source
+COPY packages/web-ui/client ./packages/web-ui/client
+
+# Build client
+RUN npm run build -w @qwen-code/web-ui-client
 
 # Production stage with nginx
 FROM nginx:alpine
 
 # Copy built files
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/packages/web-ui/client/dist /usr/share/nginx/html
 
 # Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY packages/web-ui/client/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
