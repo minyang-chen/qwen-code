@@ -24,6 +24,7 @@ export const teamApi = {
     const data = await res.json();
     if (data.session_token) {
       localStorage.setItem('team_session_token', data.session_token);
+      localStorage.setItem('team_username', username);
     }
     return data;
   },
@@ -48,6 +49,7 @@ export const teamApi = {
 
   logout() {
     localStorage.removeItem('team_session_token');
+    localStorage.removeItem('team_username');
   },
 
   async listFiles(workspace_type: string, team_id?: string) {

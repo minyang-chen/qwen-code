@@ -29,7 +29,7 @@ export function TeamLogin({ onSuccess, onSwitchToSignup }: { onSuccess: () => vo
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-6">User Login</h2>
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">User Login</h2>
         <p className="text-sm text-gray-600 mb-4">Login to access your workspace and teams.</p>
         
         {error && (

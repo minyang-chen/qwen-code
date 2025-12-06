@@ -5,6 +5,7 @@ import { sessionService } from '../services/sessionService';
 import { apiKeyService } from '../services/apiKeyService';
 import { nfsService } from '../services/nfsService';
 import { teamService } from '../services/teamService';
+import { mongoService } from '../services/mongoService';
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -22,11 +23,13 @@ export const signup = async (req: Request, res: Response) => {
     const user = await userService.createUser({ username, email, full_name, phone, password });
     const apiKey = await apiKeyService.createApiKey(user.id);
     await nfsService.createPrivateWorkspace(user.id);
+    const mongoDb = await mongoService.createUserDatabase(user.id);
     
     res.status(201).json({
       user_id: user.id,
       api_key: apiKey,
       workspace_path: user.nfs_workspace_path,
+      mongo_database: mongoDb,
       message: 'User registered successfully'
     });
   } catch (error) {

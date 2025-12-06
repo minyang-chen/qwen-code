@@ -13,6 +13,7 @@ export const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'changeme';
 export const POSTGRES_DB = process.env.POSTGRES_DB || 'qwen_users';
 
 export const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:changeme@localhost:27017/qwen_sessions?authSource=admin';
+export const MONGO_URL = process.env.MONGO_URL || 'mongodb://admin:changeme@localhost:27017';
 
 export const NFS_BASE_PATH = process.env.NFS_BASE_PATH || '../../infrastructure/nfs-data';
 

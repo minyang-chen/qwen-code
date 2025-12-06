@@ -26,7 +26,7 @@ const TeamSession = mongoose.model('team_sessions', teamSessionSchema);
 
 export const sessionService = {
   async createUserSession(userId: string, workspacePath: string) {
-    const sessionToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const sessionToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '24h' });
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     
     const session = new UserSession({
@@ -41,7 +41,7 @@ export const sessionService = {
   },
   
   async createTeamSession(userId: string, teamId: string, workspacePath: string) {
-    const sessionToken = jwt.sign({ userId, teamId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const sessionToken = jwt.sign({ userId, teamId }, JWT_SECRET, { expiresIn: '24h' });
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     
     const session = new TeamSession({

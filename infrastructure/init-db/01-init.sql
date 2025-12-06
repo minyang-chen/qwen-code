@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(50),
     password_hash VARCHAR(255) NOT NULL,
     nfs_workspace_path VARCHAR(500) NOT NULL,
+    mongo_database_name VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT true
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_mongo_db ON users(mongo_database_name);
 
 -- Teams table
 CREATE TABLE IF NOT EXISTS teams (
@@ -25,6 +27,7 @@ CREATE TABLE IF NOT EXISTS teams (
     specialization VARCHAR(255),
     description TEXT,
     nfs_workspace_path VARCHAR(500) NOT NULL,
+    mongo_database_name VARCHAR(255),
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -32,6 +35,7 @@ CREATE TABLE IF NOT EXISTS teams (
 );
 
 CREATE INDEX idx_teams_name ON teams(team_name);
+CREATE INDEX idx_teams_mongo_db ON teams(mongo_database_name);
 
 -- Team members table
 CREATE TABLE IF NOT EXISTS team_members (
@@ -39,12 +43,14 @@ CREATE TABLE IF NOT EXISTS team_members (
     team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     role VARCHAR(50) DEFAULT 'member',
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'disabled')),
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(team_id, user_id)
 );
 
 CREATE INDEX idx_team_members_team ON team_members(team_id);
 CREATE INDEX idx_team_members_user ON team_members(user_id);
+CREATE INDEX idx_team_members_status ON team_members(status);
 
 -- API keys table
 CREATE TABLE IF NOT EXISTS api_keys (

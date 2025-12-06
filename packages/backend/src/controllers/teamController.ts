@@ -126,3 +126,93 @@ export const deleteTeam = async (req: Request, res: Response) => {
     res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to delete team' } });
   }
 };
+
+export const getTeamMembers = async (req: Request, res: Response) => {
+  try {
+    const { teamId } = req.params;
+    const userId = (req as any).user.id;
+    
+    const isMember = await teamService.isMember(teamId, userId);
+    if (!isMember) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Not a team member' } });
+    }
+    
+    const members = await teamService.getTeamMembers(teamId);
+    res.json({ members });
+  } catch (error) {
+    console.error('Get team members error:', error);
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to get team members' } });
+  }
+};
+
+export const addTeamMember = async (req: Request, res: Response) => {
+  try {
+    const { teamId } = req.params;
+    const { email } = req.body;
+    const userId = (req as any).user.id;
+    
+    const isAdmin = await teamService.isAdmin(teamId, userId);
+    if (!isAdmin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only admins can add members' } });
+    }
+    
+    await teamService.addMemberByEmail(teamId, email);
+    res.json({ message: 'Member added successfully' });
+  } catch (error: any) {
+    console.error('Add team member error:', error);
+    if (error.message === 'User not found') {
+      return res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: 'User not found' } });
+    }
+    if (error.message === 'User is already a member') {
+      return res.status(409).json({ error: { code: 'ALREADY_MEMBER', message: 'User is already a member' } });
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to add member' } });
+  }
+};
+
+export const removeTeamMember = async (req: Request, res: Response) => {
+  try {
+    const { teamId, memberId } = req.params;
+    const userId = (req as any).user.id;
+    
+    const isAdmin = await teamService.isAdmin(teamId, userId);
+    if (!isAdmin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only admins can remove members' } });
+    }
+    
+    const memberIsAdmin = await teamService.isAdmin(teamId, memberId);
+    if (memberIsAdmin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Cannot remove admin members' } });
+    }
+    
+    await teamService.removeMember(teamId, memberId);
+    res.json({ message: 'Member removed successfully' });
+  } catch (error) {
+    console.error('Remove team member error:', error);
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to remove member' } });
+  }
+};
+
+export const updateMemberStatus = async (req: Request, res: Response) => {
+  try {
+    const { teamId, memberId } = req.params;
+    const { status } = req.body;
+    const userId = (req as any).user.id;
+    
+    const isAdmin = await teamService.isAdmin(teamId, userId);
+    if (!isAdmin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only admins can update member status' } });
+    }
+    
+    const memberIsAdmin = await teamService.isAdmin(teamId, memberId);
+    if (memberIsAdmin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Cannot modify admin status' } });
+    }
+    
+    await teamService.updateMemberStatus(teamId, memberId, status);
+    res.json({ message: 'Member status updated successfully' });
+  } catch (error) {
+    console.error('Update member status error:', error);
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to update member status' } });
+  }
+};
