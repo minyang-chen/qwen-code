@@ -30,6 +30,7 @@ export class SessionManager {
   async createSession(
     userId: string,
     userCredentials?: UserCredentials,
+    workingDirectory?: string,
   ): Promise<Session> {
     const sessionId = nanoid();
 
@@ -111,10 +112,13 @@ export class SessionManager {
 
     console.log('Normalized baseUrl:', baseUrl);
 
+    const targetDir = workingDirectory || process.cwd();
+    const cwd = workingDirectory || process.cwd();
+
     const config = new Config({
       sessionId,
-      targetDir: process.cwd(),
-      cwd: process.cwd(),
+      targetDir,
+      cwd,
       debugMode: false,
       approvalMode: ApprovalMode.YOLO,
       mcpServers: {},

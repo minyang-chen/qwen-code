@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  nfs-server:
+    image: gists/nfs-server:latest
+    container_name: team-nfs-server
+    privileged: true
+    environment:
+      - NFS_DIR=/nfs-share
+      - NFS_OPTION=rw,fsid=0,async,no_subtree_check,no_auth_nlm,insecure,no_root_squash
+    volumes:
+      - /workdisk/infrastructure/data/nfs-data:/nfs-share
+    ports:
+      - "2049:2049"
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: team-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=changeme
+    volumes:
+      - /workdisk/infrastructure/data/mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: team-postgres
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_DB=qwen_users
+    volumes:
+      - /workdisk/infrastructure/data/postgres-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+  postgres-data:
+
+networks:
+  team-network:
+    driver: bridge

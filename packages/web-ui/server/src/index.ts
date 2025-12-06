@@ -376,10 +376,13 @@ app.post('/api/sessions', async (request, reply) => {
     return reply.code(401).send({ error: 'Unauthorized' });
   }
 
+  const { workingDirectory } = request.body as { workingDirectory?: string };
+
   try {
     const session = await sessionManager.createSession(
       user.userId,
       user.credentials,
+      workingDirectory,
     );
     return { sessionId: session.id };
   } catch (error) {
