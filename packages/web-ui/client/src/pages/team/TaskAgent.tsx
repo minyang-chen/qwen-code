@@ -31,12 +31,13 @@ export function TaskAgent({ workspaceType, selectedTeamId }: TaskAgentProps) {
 
         const { userId } = await userRes.json();
 
-        // Construct NFS directory path
+        // Construct NFS directory path (using actual host path)
+        const nfsBasePath = '/workdisk/hosting/my_qwen_code/qwen-code/infrastructure/nfs-data';
         let workingDirectory: string;
         if (workspaceType === 'private') {
-          workingDirectory = `/private/${userId}`;
+          workingDirectory = `${nfsBasePath}/private/${userId}`;
         } else if (workspaceType === 'team' && selectedTeamId) {
-          workingDirectory = `/team/${selectedTeamId}`;
+          workingDirectory = `${nfsBasePath}/shared/${selectedTeamId}`;
         } else {
           console.error('Invalid workspace configuration');
           setLoading(false);
