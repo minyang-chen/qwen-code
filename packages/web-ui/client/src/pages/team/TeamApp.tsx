@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { TeamLogin } from './TeamLogin';
 import { TeamSignup } from './TeamSignup';
+import { TeamSelect } from './TeamSelect';
 import { TeamDashboard } from './TeamDashboard';
 
 export function TeamApp() {
-  const [view, setView] = useState<'login' | 'signup' | 'dashboard'>('login');
+  const [view, setView] = useState<'login' | 'signup' | 'select' | 'workspace'>('login');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -13,7 +14,13 @@ export function TeamApp() {
     
     if (token) {
       setIsAuthenticated(true);
-      setView('dashboard');
+      if (path.includes('/workspace')) {
+        setView('workspace');
+      } else if (path.includes('/select')) {
+        setView('select');
+      } else {
+        setView('select');
+      }
     } else if (path.includes('/signup')) {
       setView('signup');
     } else {
@@ -23,13 +30,18 @@ export function TeamApp() {
 
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
-    setView('dashboard');
-    window.history.pushState({}, '', '/team/dashboard');
+    setView('select');
+    window.history.pushState({}, '', '/team/select');
   };
 
   const handleSignupSuccess = () => {
     setView('login');
     window.history.pushState({}, '', '/team/login');
+  };
+
+  const handleTeamSelected = () => {
+    setView('workspace');
+    window.history.pushState({}, '', '/team/workspace');
   };
 
   const handleSwitchToSignup = () => {
@@ -42,8 +54,12 @@ export function TeamApp() {
     window.history.pushState({}, '', '/team/login');
   };
 
-  if (view === 'dashboard' && isAuthenticated) {
+  if (view === 'workspace' && isAuthenticated) {
     return <TeamDashboard />;
+  }
+
+  if (view === 'select' && isAuthenticated) {
+    return <TeamSelect onTeamSelected={handleTeamSelected} />;
   }
 
   if (view === 'signup') {

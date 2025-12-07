@@ -10,4 +10,8 @@ echo ""
 
 
 cd packages/backend
-npm run dev
+#npm run dev
+
+# after npm run build 
+npm start
+

@@ -38,10 +38,12 @@ export const mongoService = {
       await db.createCollection('projects');
       await db.createCollection('chat_sessions');
       await db.createCollection('documents');
+      await db.createCollection('notifications');
       
       await db.collection('tasks').createIndex({ created_at: -1 });
       await db.collection('projects').createIndex({ created_at: -1 });
       await db.collection('chat_sessions').createIndex({ created_at: -1 });
+      await db.collection('notifications').createIndex({ created_at: -1 });
       
       return dbName;
     } finally {

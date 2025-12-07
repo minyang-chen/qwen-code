@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { sessionService } from '../services/sessionService';
 import { userService } from '../services/userService';
+import { teamService } from '../services/teamService';
 
 declare global {
   namespace Express {
@@ -9,6 +10,7 @@ declare global {
         id: string;
         username: string;
       };
+      teamId?: string;
     }
   }
 }
@@ -38,5 +40,37 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
   } catch (error) {
     console.error('Auth middleware error:', error);
     res.status(401).json({ error: { code: 'AUTH_ERROR', message: 'Authentication failed' } });
+  }
+};
+
+export const requireTeamAccess = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !req.user?.id) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const token = authHeader.substring(7);
+    const activeTeamId = await sessionService.getActiveTeam(token);
+    
+    if (!activeTeamId) {
+      return res.status(403).json({ 
+        error: 'No team selected',
+        redirectTo: '/team/select'
+      });
+    }
+    
+    const isMember = await teamService.isMember(activeTeamId, req.user.id);
+    
+    if (!isMember) {
+      return res.status(403).json({ error: 'Not a team member' });
+    }
+    
+    req.teamId = activeTeamId;
+    next();
+  } catch (error) {
+    console.error('Team access middleware error:', error);
+    res.status(500).json({ error: 'Team access validation failed' });
   }
 };

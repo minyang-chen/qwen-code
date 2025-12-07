@@ -17,9 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100
+  max: 1000
 });
-app.use(limiter);
+app.use(limiter as any);
 
 // Routes
 app.use(routes);

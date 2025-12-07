@@ -74,6 +74,18 @@ export const teamService = {
     return result.rows;
   },
   
+  async getAllTeams() {
+    const result = await pool.query(
+      `SELECT t.id, t.team_name, t.specialization, 
+       (SELECT COUNT(*) FROM team_members WHERE team_id = t.id) as member_count
+       FROM teams t
+       WHERE t.is_active = true
+       ORDER BY t.created_at DESC`,
+      []
+    );
+    return result.rows;
+  },
+  
   async isMember(teamId: string, userId: string): Promise<boolean> {
     const result = await pool.query(
       'SELECT id FROM team_members WHERE team_id = $1 AND user_id = $2',

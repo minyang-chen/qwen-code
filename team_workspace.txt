@@ -1,0 +1,10 @@
+bash
+# Start backend server
+cd packages/backend && npm start
+
+# In another terminal, start frontend
+cd packages/web-ui/client && npm run dev
+
+# Test the flow:
+# 1. Navigate to http://localhost:5173/team/login
+

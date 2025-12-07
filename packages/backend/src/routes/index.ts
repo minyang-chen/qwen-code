@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import { signup, login } from '../controllers/authController';
 import { createTeam, joinTeam, teamSignin, searchTeams, getUserTeams, deleteTeam, getTeamMembers, addTeamMember, removeTeamMember, updateMemberStatus } from '../controllers/teamController';
+import { listTeams, selectTeam, getActiveTeam } from '../controllers/teamSelectionController';
 import { listFiles, uploadFile, downloadFile, deleteFile, searchFiles } from '../controllers/fileController';
 import { getProfile, updateProfile, regenerateApiKey } from '../controllers/userController';
 import { getTodos, createTodo, updateTodo, deleteTodo } from '../controllers/todoController';
+import { sendBroadcast, getNotifications, replyToNotification } from '../controllers/notificationController';
+import { projectController } from '../controllers/projectController';
 import { authenticate } from '../middleware/authMiddleware';
 
 const router = Router();
@@ -11,6 +14,11 @@ const router = Router();
 // Auth routes
 router.post('/api/auth/signup', signup);
 router.post('/api/auth/login', login);
+
+// Team selection routes
+router.get('/api/team/list', authenticate, listTeams);
+router.post('/api/team/select', authenticate, selectTeam);
+router.get('/api/team/active', authenticate, getActiveTeam);
 
 // User routes
 router.get('/api/user/me', authenticate, (req, res) => {
@@ -40,6 +48,11 @@ router.post('/api/teams/:teamId/members', authenticate, addTeamMember);
 router.delete('/api/teams/:teamId/members/:memberId', authenticate, removeTeamMember);
 router.patch('/api/teams/:teamId/members/:memberId/status', authenticate, updateMemberStatus);
 
+// Notification routes
+router.post('/api/teams/:teamId/broadcast', authenticate, sendBroadcast);
+router.get('/api/teams/:teamId/notifications', authenticate, getNotifications);
+router.post('/api/teams/:teamId/notifications/:notificationId/reply', authenticate, replyToNotification);
+
 // OpenAI config for task agent
 router.get('/api/team/openai-config', authenticate, (req, res) => {
   res.json({
@@ -51,9 +64,50 @@ router.get('/api/team/openai-config', authenticate, (req, res) => {
 
 // File routes
 router.get('/api/files/list', authenticate, listFiles);
-router.post('/api/files/upload', authenticate, ...uploadFile);
+router.post('/api/files/upload', authenticate, ...(uploadFile as any));
 router.get('/api/files/download', authenticate, downloadFile);
 router.delete('/api/files/delete', authenticate, deleteFile);
 router.post('/api/files/search', authenticate, searchFiles);
+
+// Project management routes
+router.get('/api/teams/:teamId/requirements', authenticate, projectController.requirements.get);
+router.post('/api/teams/:teamId/requirements', authenticate, projectController.requirements.create);
+router.put('/api/teams/:teamId/requirements/:id', authenticate, projectController.requirements.update);
+router.delete('/api/teams/:teamId/requirements/:id', authenticate, projectController.requirements.delete);
+
+router.get('/api/teams/:teamId/architecture', authenticate, projectController.architecture.get);
+router.post('/api/teams/:teamId/architecture', authenticate, projectController.architecture.create);
+router.put('/api/teams/:teamId/architecture/:id', authenticate, projectController.architecture.update);
+router.delete('/api/teams/:teamId/architecture/:id', authenticate, projectController.architecture.delete);
+
+router.get('/api/teams/:teamId/design', authenticate, projectController.design.get);
+router.post('/api/teams/:teamId/design', authenticate, projectController.design.create);
+router.put('/api/teams/:teamId/design/:id', authenticate, projectController.design.update);
+router.delete('/api/teams/:teamId/design/:id', authenticate, projectController.design.delete);
+
+router.get('/api/teams/:teamId/implementation', authenticate, projectController.implementation.get);
+router.post('/api/teams/:teamId/implementation', authenticate, projectController.implementation.create);
+router.put('/api/teams/:teamId/implementation/:id', authenticate, projectController.implementation.update);
+router.delete('/api/teams/:teamId/implementation/:id', authenticate, projectController.implementation.delete);
+
+router.get('/api/teams/:teamId/tasks', authenticate, projectController.tasks.get);
+router.post('/api/teams/:teamId/tasks', authenticate, projectController.tasks.create);
+router.put('/api/teams/:teamId/tasks/:id', authenticate, projectController.tasks.update);
+router.delete('/api/teams/:teamId/tasks/:id', authenticate, projectController.tasks.delete);
+
+router.get('/api/teams/:teamId/code', authenticate, projectController.code.get);
+router.post('/api/teams/:teamId/code', authenticate, projectController.code.create);
+router.put('/api/teams/:teamId/code/:id', authenticate, projectController.code.update);
+router.delete('/api/teams/:teamId/code/:id', authenticate, projectController.code.delete);
+
+router.get('/api/teams/:teamId/issues', authenticate, projectController.issues.get);
+router.post('/api/teams/:teamId/issues', authenticate, projectController.issues.create);
+router.put('/api/teams/:teamId/issues/:id', authenticate, projectController.issues.update);
+router.delete('/api/teams/:teamId/issues/:id', authenticate, projectController.issues.delete);
+
+router.get('/api/teams/:teamId/meetings', authenticate, projectController.meetings.get);
+router.post('/api/teams/:teamId/meetings', authenticate, projectController.meetings.create);
+router.put('/api/teams/:teamId/meetings/:id', authenticate, projectController.meetings.update);
+router.delete('/api/teams/:teamId/meetings/:id', authenticate, projectController.meetings.delete);
 
 export default router;

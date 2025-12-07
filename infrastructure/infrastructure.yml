@@ -40,6 +40,46 @@ services:
       - "5432:5432"
     restart: unless-stopped
 
+  gitea:
+    image: docker.gitea.com/gitea:1.25.2
+    container_name: team-gitea
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - LOGIN_ID=admin/admin@demo.com
+      - LOGIN_PASSWORD=admin123
+    restart: unless-stopped
+    volumes:
+      - /workdisk/infrastructure/data/gitea:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3333:3000"
+      - "222:22"
+
+  excalidraw:
+    image: excalidraw/excalidraw:latest
+    container_name: team-excalidraw
+    restart: unless-stopped
+    volumes:
+      - /workdisk/infrastructure/data/excalidraw:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "5000:80"
+
+  drawio:
+    image: jgraph/drawio
+    container_name: team-drawio
+    restart: unless-stopped
+    volumes:
+      - /workdisk/infrastructure/data/drawio:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "8008:8080"
+      - "8443:8443"
+
 volumes:
   mongo-data:
   postgres-data:

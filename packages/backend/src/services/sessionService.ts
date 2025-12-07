@@ -6,6 +6,7 @@ const userSessionSchema = new mongoose.Schema({
   user_id: { type: String, required: true },
   session_token: { type: String, required: true, unique: true },
   workspace_path: { type: String, required: true },
+  active_team_id: { type: String },
   created_at: { type: Date, default: Date.now },
   expires_at: { type: Date, required: true },
   last_activity: { type: Date, default: Date.now }
@@ -38,6 +39,29 @@ export const sessionService = {
     
     await session.save();
     return sessionToken;
+  },
+  
+  async setActiveTeam(sessionToken: string, teamId: string) {
+    const session = await UserSession.findOne({ 
+      session_token: sessionToken,
+      expires_at: { $gt: new Date() }
+    });
+    
+    if (!session) return false;
+    
+    session.active_team_id = teamId;
+    session.last_activity = new Date();
+    await session.save();
+    return true;
+  },
+  
+  async getActiveTeam(sessionToken: string) {
+    const session = await UserSession.findOne({ 
+      session_token: sessionToken,
+      expires_at: { $gt: new Date() }
+    });
+    
+    return session?.active_team_id || null;
   },
   
   async createTeamSession(userId: string, teamId: string, workspacePath: string) {

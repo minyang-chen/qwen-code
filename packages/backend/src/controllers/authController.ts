@@ -59,7 +59,7 @@ export const login = async (req: Request, res: Response) => {
       session_token: sessionToken,
       user_id: user.id,
       workspace_path: user.nfs_workspace_path,
-      teams: teams.map(t => t.id)
+      teams: teams.map((t: any) => t.id)
     });
   } catch (error) {
     console.error('Login error:', error);

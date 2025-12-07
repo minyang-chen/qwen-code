@@ -47,6 +47,22 @@ export const teamApi = {
     return res.json();
   },
 
+  async listTeams() {
+    const res = await fetch(`${API_BASE}/api/team/list`, {
+      headers: { ...getAuthHeader() }
+    });
+    return res.json();
+  },
+
+  async selectTeam(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/team/select`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify({ teamId })
+    });
+    return res.json();
+  },
+
   logout() {
     localStorage.removeItem('team_session_token');
     localStorage.removeItem('team_username');
@@ -122,11 +138,243 @@ export const teamApi = {
     return res.json();
   },
 
+  async getActiveTeam() {
+    const res = await fetch(`${API_BASE}/api/team/active`, {
+      headers: { ...getAuthHeader() }
+    });
+    return res.json();
+  },
+
   async deleteTeam(teamId: string) {
     const res = await fetch(`${API_BASE}/api/teams/delete`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
       body: JSON.stringify({ team_id: teamId })
+    });
+    return res.json();
+  },
+
+  // Project management APIs
+  async getRequirements(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/requirements`, { headers: getAuthHeader() });
+    return res.json();
+  },
+  async createRequirement(teamId: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/requirements`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async updateRequirement(teamId: string, id: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/requirements/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async deleteRequirement(teamId: string, id: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/requirements/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return res.json();
+  },
+
+  async getArchitecture(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/architecture`, { headers: getAuthHeader() });
+    return res.json();
+  },
+  async createArchitecture(teamId: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/architecture`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async updateArchitecture(teamId: string, id: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/architecture/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async deleteArchitecture(teamId: string, id: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/architecture/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return res.json();
+  },
+
+  async getDesign(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/design`, { headers: getAuthHeader() });
+    return res.json();
+  },
+  async createDesign(teamId: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/design`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async updateDesign(teamId: string, id: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/design/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async deleteDesign(teamId: string, id: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/design/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return res.json();
+  },
+
+  async getImplementation(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/implementation`, { headers: getAuthHeader() });
+    return res.json();
+  },
+  async createImplementation(teamId: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/implementation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async updateImplementation(teamId: string, id: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/implementation/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async deleteImplementation(teamId: string, id: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/implementation/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return res.json();
+  },
+
+  async getTasks(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/tasks`, { headers: getAuthHeader() });
+    return res.json();
+  },
+  async createTask(teamId: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async updateTask(teamId: string, id: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/tasks/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async deleteTask(teamId: string, id: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/tasks/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return res.json();
+  },
+
+  async getCode(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/code`, { headers: getAuthHeader() });
+    return res.json();
+  },
+  async createCode(teamId: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/code`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async updateCode(teamId: string, id: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/code/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async deleteCode(teamId: string, id: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/code/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return res.json();
+  },
+
+  async getIssues(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/issues`, { headers: getAuthHeader() });
+    return res.json();
+  },
+  async createIssue(teamId: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/issues`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async updateIssue(teamId: string, id: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/issues/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async deleteIssue(teamId: string, id: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/issues/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return res.json();
+  },
+
+  async getMeetings(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/meetings`, { headers: getAuthHeader() });
+    return res.json();
+  },
+  async createMeeting(teamId: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/meetings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async updateMeeting(teamId: string, id: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/meetings/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async deleteMeeting(teamId: string, id: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/meetings/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
     });
     return res.json();
   }
