@@ -8,7 +8,7 @@ interface Team {
   memberCount?: number;
 }
 
-export function TeamSelect({ onTeamSelected }: { onTeamSelected: () => void }) {
+export function TeamSelect({ onTeamSelected, onLogout }: { onTeamSelected: () => void; onLogout?: () => void }) {
   const [myTeams, setMyTeams] = useState<Team[]>([]);
   const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);

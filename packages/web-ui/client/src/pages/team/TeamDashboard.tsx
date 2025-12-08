@@ -16,7 +16,7 @@ import { useKnowledge } from './hooks/useKnowledge';
 import { useProject } from './hooks/useProject';
 import { TabType, WorkspaceType, DashboardSubTab, ProjectSubTab, TeamSubTab, TeamActionTab } from './types/team.types';
 
-export function TeamDashboard() {
+export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [workspaceType, setWorkspaceType] = useState<WorkspaceType>('private');
   const [selectedTeamId] = useState('');
@@ -28,6 +28,12 @@ export function TeamDashboard() {
   const [teamActionTab, setTeamActionTab] = useState<TeamActionTab>('create');
   const [activeProject, setActiveProject] = useState<any>(null);
   const [showProjectSelection, setShowProjectSelection] = useState(true);
+
+  // Wrap setActiveProject to persist to localStorage
+  const handleSetActiveProject = (proj: any) => {
+    setActiveProject(proj);
+    project.setActiveProject(proj);
+  };
 
   // Initialize all hooks
   const profile = useProfile();
@@ -46,10 +52,10 @@ export function TeamDashboard() {
     setUsername(localStorage.getItem('team_username') || '');
     profile.loadProfile();
     
-    // Load active project from session storage
-    const savedProject = sessionStorage.getItem('activeProject');
+    // Load active project from localStorage
+    const savedProject = project.getActiveProject();
     if (savedProject) {
-      setActiveProject(JSON.parse(savedProject));
+      setActiveProject(savedProject);
       setShowProjectSelection(false);
     }
   }, [workspaceType, selectedTeamId]);
@@ -58,6 +64,7 @@ export function TeamDashboard() {
   useEffect(() => {
     if (teams.selectedTeam) {
       notifications.loadNotifications(teams.selectedTeam.id);
+      project.loadProjects(teams.selectedTeam);
     }
   }, [teams.selectedTeam?.id]);
 
@@ -99,7 +106,13 @@ export function TeamDashboard() {
 
   const handleLogout = () => {
     teamApi.logout();
-    window.location.href = '/team';
+    localStorage.removeItem('selectedTeam');
+    localStorage.removeItem('activeProject');
+    if (onLogout) {
+      onLogout();
+    } else {
+      window.location.href = '/team';
+    }
   };
 
   return (
@@ -122,7 +135,7 @@ export function TeamDashboard() {
 
       {activeTab === 'task-assistant' ? (
         <div className="h-[calc(100vh-80px)]">
-          <TaskAgent workspaceType={workspaceType} selectedTeamId={selectedTeamId} />
+          <TaskAgent workspaceType={workspaceType} selectedTeamId={teams.selectedTeam?.id || ''} />
         </div>
       ) : activeTab === 'dashboard' ? (
         <DashboardTab
@@ -164,7 +177,7 @@ export function TeamDashboard() {
           setProjectSubTab={setProjectSubTab}
           selectedTeam={teams.selectedTeam}
           activeProject={activeProject}
-          setActiveProject={setActiveProject}
+          setActiveProject={handleSetActiveProject}
           showProjectSelection={showProjectSelection}
           setShowProjectSelection={setShowProjectSelection}
           projects={project.projects}

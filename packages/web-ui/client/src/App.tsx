@@ -19,6 +19,11 @@ export function App() {
         if (!authRes.ok) {
           setAuthenticated(false);
           setLoading(false);
+          // Redirect to /individual/login if not on login page
+          const path = window.location.pathname;
+          if (path !== '/individual/login' && path.startsWith('/individual')) {
+            window.history.replaceState({}, '', '/individual/login');
+          }
           return;
         }
 
@@ -48,6 +53,12 @@ export function App() {
           }
         }
         setAuthenticated(true);
+        
+        // Redirect to /individual/agent if authenticated and on login page
+        const path = window.location.pathname;
+        if (path === '/individual/login') {
+          window.history.replaceState({}, '', '/individual/agent');
+        }
       } catch (error) {
         console.error('Initialization error:', error);
         setAuthenticated(false);
@@ -58,6 +69,11 @@ export function App() {
 
     init();
   }, [setSessionId, setSessions, addSession]);
+
+  const handleLoginSuccess = () => {
+    setAuthenticated(true);
+    window.location.href = '/individual/agent';
+  };
 
   if (loading) {
     return (
@@ -71,7 +87,7 @@ export function App() {
   }
 
   if (!authenticated) {
-    return <Login />;
+    return <Login onSuccess={handleLoginSuccess} />;
   }
 
   return <ChatContainer />;

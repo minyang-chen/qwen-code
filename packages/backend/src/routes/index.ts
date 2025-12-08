@@ -70,6 +70,22 @@ router.delete('/api/files/delete', authenticate, deleteFile);
 router.post('/api/files/search', authenticate, searchFiles);
 
 // Project management routes
+router.post('/api/teams/:teamId/projects', authenticate, projectController.project.create);
+router.get('/api/teams/:teamId/projects', authenticate, projectController.project.list);
+router.get('/api/teams/:teamId/projects/:projectId', authenticate, projectController.project.get);
+router.put('/api/teams/:teamId/projects/:projectId', authenticate, projectController.project.update);
+
+// Project sections routes
+router.post('/api/teams/:teamId/sections', authenticate, projectController.section.create);
+router.get('/api/teams/:teamId/projects/:projectId/sections', authenticate, projectController.section.list);
+router.get('/api/teams/:teamId/sections/:sectionId', authenticate, projectController.section.get);
+router.put('/api/teams/:teamId/sections/:sectionId', authenticate, projectController.section.update);
+
+// Project stats routes
+router.post('/api/teams/:teamId/stats', authenticate, projectController.stats.create);
+router.get('/api/teams/:teamId/projects/:projectId/stats', authenticate, projectController.stats.get);
+router.put('/api/teams/:teamId/projects/:projectId/stats', authenticate, projectController.stats.update);
+
 router.get('/api/teams/:teamId/requirements', authenticate, projectController.requirements.get);
 router.post('/api/teams/:teamId/requirements', authenticate, projectController.requirements.create);
 router.put('/api/teams/:teamId/requirements/:id', authenticate, projectController.requirements.update);

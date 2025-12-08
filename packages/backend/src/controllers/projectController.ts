@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { mongoService } from '../services/mongoService';
+import { projectService } from '../services/projectService';
 import mongoose from 'mongoose';
 
 const { ObjectId } = mongoose.mongo;
@@ -105,6 +106,139 @@ const deleteItem = (collectionName: string) => async (req: Request, res: Respons
 
 // Export all CRUD operations for each collection
 export const projectController = {
+  // Project management
+  project: {
+    create: async (req: Request, res: Response) => {
+      try {
+        const teamId = req.params.teamId;
+        if (!teamId) return res.status(400).json({ success: false, error: 'Team ID required' });
+        const project = await projectService.createProject(teamId, { ...req.body, teamId });
+        res.json({ success: true, data: project });
+      } catch (error) {
+        console.error('Create project error:', error);
+        res.status(500).json({ success: false, error: 'Failed to create project' });
+      }
+    },
+    get: async (req: Request, res: Response) => {
+      try {
+        const { teamId, projectId } = req.params;
+        if (!teamId || !projectId) return res.status(400).json({ error: 'Team ID and Project ID required' });
+        const project = await projectService.getProject(teamId, projectId);
+        res.json(project);
+      } catch (error) {
+        console.error('Get project error:', error);
+        res.status(500).json({ error: 'Failed to fetch project' });
+      }
+    },
+    update: async (req: Request, res: Response) => {
+      try {
+        const { teamId, projectId } = req.params;
+        if (!teamId || !projectId) return res.status(400).json({ error: 'Team ID and Project ID required' });
+        const project = await projectService.updateProject(teamId, projectId, req.body);
+        res.json(project);
+      } catch (error) {
+        console.error('Update project error:', error);
+        res.status(500).json({ error: 'Failed to update project' });
+      }
+    },
+    list: async (req: Request, res: Response) => {
+      try {
+        const teamId = req.params.teamId;
+        if (!teamId) return res.status(400).json({ error: 'Team ID required' });
+        const projects = await projectService.listProjects(teamId);
+        res.json(projects);
+      } catch (error) {
+        console.error('List projects error:', error);
+        res.status(500).json({ error: 'Failed to list projects' });
+      }
+    }
+  },
+  
+  // Project sections
+  section: {
+    create: async (req: Request, res: Response) => {
+      try {
+        const teamId = req.params.teamId;
+        if (!teamId) return res.status(400).json({ error: 'Team ID required' });
+        const section = await projectService.createSection(teamId, { ...req.body, teamId });
+        res.json(section);
+      } catch (error) {
+        console.error('Create section error:', error);
+        res.status(500).json({ error: 'Failed to create section' });
+      }
+    },
+    get: async (req: Request, res: Response) => {
+      try {
+        const { teamId, sectionId } = req.params;
+        if (!teamId || !sectionId) return res.status(400).json({ error: 'Team ID and Section ID required' });
+        const section = await projectService.getSection(teamId, sectionId);
+        res.json(section);
+      } catch (error) {
+        console.error('Get section error:', error);
+        res.status(500).json({ error: 'Failed to fetch section' });
+      }
+    },
+    update: async (req: Request, res: Response) => {
+      try {
+        const { teamId, sectionId } = req.params;
+        if (!teamId || !sectionId) return res.status(400).json({ error: 'Team ID and Section ID required' });
+        const section = await projectService.updateSection(teamId, sectionId, req.body);
+        res.json(section);
+      } catch (error) {
+        console.error('Update section error:', error);
+        res.status(500).json({ error: 'Failed to update section' });
+      }
+    },
+    list: async (req: Request, res: Response) => {
+      try {
+        const { teamId, projectId } = req.params;
+        if (!teamId || !projectId) return res.status(400).json({ error: 'Team ID and Project ID required' });
+        const sections = await projectService.listSections(teamId, projectId);
+        res.json(sections);
+      } catch (error) {
+        console.error('List sections error:', error);
+        res.status(500).json({ error: 'Failed to list sections' });
+      }
+    }
+  },
+  
+  // Project stats
+  stats: {
+    create: async (req: Request, res: Response) => {
+      try {
+        const teamId = req.params.teamId;
+        if (!teamId) return res.status(400).json({ error: 'Team ID required' });
+        const stats = await projectService.createStats(teamId, { ...req.body, teamId });
+        res.json(stats);
+      } catch (error) {
+        console.error('Create stats error:', error);
+        res.status(500).json({ error: 'Failed to create stats' });
+      }
+    },
+    get: async (req: Request, res: Response) => {
+      try {
+        const { teamId, projectId } = req.params;
+        if (!teamId || !projectId) return res.status(400).json({ error: 'Team ID and Project ID required' });
+        const stats = await projectService.getStats(teamId, projectId);
+        res.json(stats);
+      } catch (error) {
+        console.error('Get stats error:', error);
+        res.status(500).json({ error: 'Failed to fetch stats' });
+      }
+    },
+    update: async (req: Request, res: Response) => {
+      try {
+        const { teamId, projectId } = req.params;
+        if (!teamId || !projectId) return res.status(400).json({ error: 'Team ID and Project ID required' });
+        const stats = await projectService.updateStats(teamId, projectId, req.body);
+        res.json(stats);
+      } catch (error) {
+        console.error('Update stats error:', error);
+        res.status(500).json({ error: 'Failed to update stats' });
+      }
+    }
+  },
+
   requirements: {
     get: getItems(COLLECTIONS.requirements),
     create: createItem(COLLECTIONS.requirements),

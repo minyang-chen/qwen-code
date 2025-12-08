@@ -9,6 +9,16 @@ import {
 export function useProject() {
   const [projects, setProjects] = useState<any[]>([]);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
+
+  const loadProjects = async (selectedTeam: Team | null) => {
+    if (!selectedTeam) return;
+    try {
+      const data = await teamApi.listProjects(selectedTeam.id);
+      setProjects(data || []);
+    } catch (err) {
+      console.error('Failed to load projects');
+    }
+  };
   const [architectures, setArchitectures] = useState<Architecture[]>([]);
   const [designs, setDesigns] = useState<Design[]>([]);
   const [implementations, setImplementations] = useState<Implementation[]>([]);
@@ -23,13 +33,34 @@ export function useProject() {
     dependencies: '', approvals: [] as string[], teams: [] as string[], members: [] as string[] 
   });
 
-  // Helper to get active project ID
+  // Active project persistence helpers
   const getActiveProjectId = () => {
     try {
-      const activeProject = sessionStorage.getItem('activeProject');
+      const activeProject = localStorage.getItem('activeProject');
       return activeProject ? JSON.parse(activeProject).projectId : null;
     } catch {
       return null;
+    }
+  };
+
+  const getActiveProject = () => {
+    try {
+      const activeProject = localStorage.getItem('activeProject');
+      return activeProject ? JSON.parse(activeProject) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const setActiveProject = (project: any) => {
+    try {
+      if (project) {
+        localStorage.setItem('activeProject', JSON.stringify(project));
+      } else {
+        localStorage.removeItem('activeProject');
+      }
+    } catch (err) {
+      console.error('Failed to save active project');
     }
   };
   const [reqForm, setReqForm] = useState<RequirementForm>({ title: '', description: '', priority: 'medium', status: 'draft' });
@@ -69,21 +100,18 @@ export function useProject() {
 
   // Projects CRUD
   const addProject = async (selectedTeam: Team | null) => {
-    if (!selectedTeam || !projectForm.name) return;
+    if (!selectedTeam || !projectForm.name) return { success: false, error: 'Missing required fields' };
     try {
-      const uniqueId = `PRJ-${Date.now().toString(36).toUpperCase()}`;
-      const item = { 
-        _id: Date.now().toString(), 
-        projectId: uniqueId,
-        ...projectForm,
-        approvals: projectForm.approvals || [],
-        teams: projectForm.teams || [],
-        members: projectForm.members || []
-      };
-      setProjects([item, ...projects]);
-      setProjectForm({ name: '', description: '', status: '', manager: '', startDate: '', endDate: '', deadline: '', budget: '', marketSegments: '', products: '', targetUser: '', sponsor: '', funding: '', dependencies: '', approvals: [], teams: [], members: [] });
+      const result = await teamApi.createProject(selectedTeam.id, projectForm);
+      if (result.success) {
+        setProjects([result.data, ...projects]);
+        setProjectForm({ name: '', description: '', status: '', manager: '', startDate: '', endDate: '', deadline: '', budget: '', marketSegments: '', products: '', targetUser: '', sponsor: '', funding: '', dependencies: '', approvals: [], teams: [], members: [] });
+        return { success: true, data: result.data };
+      }
+      return { success: false, error: result.error || 'Failed to create project' };
     } catch (err) {
-      console.error('Failed to add project');
+      console.error('Failed to add project:', err);
+      return { success: false, error: 'Failed to create project' };
     }
   };
 
@@ -560,7 +588,7 @@ export function useProject() {
   };
 
   return {
-    projects, setProjects, projectForm, setProjectForm, addProject, updateProject, deleteProject,
+    projects, setProjects, projectForm, setProjectForm, addProject, updateProject, deleteProject, loadProjects,
     plans, setPlans, planForm, setPlanForm, addPlan, updatePlan, deletePlan,
     deliverables, setDeliverables, deliverableForm, setDeliverableForm, addDeliverable, updateDeliverable, deleteDeliverable,
     requirements, setRequirements, reqForm, setReqForm, addRequirement, updateRequirement, deleteRequirement,
@@ -575,6 +603,8 @@ export function useProject() {
     notes, setNotes, noteForm, setNoteForm, addNote, updateNote, deleteNote,
     research, setResearch, researchForm, setResearchForm, addResearch, updateResearch, deleteResearch,
     reports, setReports, reportForm, setReportForm, addReport, updateReport, deleteReport,
-    loadProjectData
+    loadProjectData,
+    getActiveProject,
+    setActiveProject
   };
 }

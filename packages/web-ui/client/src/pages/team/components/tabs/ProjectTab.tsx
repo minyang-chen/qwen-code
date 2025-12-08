@@ -150,7 +150,6 @@ export function ProjectTab(props: ProjectTabProps) {
 
   const handleSelectProject = (project: any) => {
     setActiveProject(project);
-    sessionStorage.setItem('activeProject', JSON.stringify(project));
     setShowProjectSelection(false);
   };
 
@@ -161,7 +160,6 @@ export function ProjectTab(props: ProjectTabProps) {
 
   const handleBackToSelection = () => {
     setActiveProject(null);
-    sessionStorage.removeItem('activeProject');
     setShowProjectSelection(true);
     setShowCreateForm(false);
   };
@@ -172,12 +170,13 @@ export function ProjectTab(props: ProjectTabProps) {
 
   const handleSaveNewProject = async () => {
     if (selectedTeam) {
-      await props.addProject(selectedTeam);
-      const newProject = props.projects[props.projects.length - 1];
-      if (newProject) {
-        setActiveProject(newProject);
-        sessionStorage.setItem('activeProject', JSON.stringify(newProject));
+      const result = await props.addProject(selectedTeam);
+      if (result?.success) {
+        alert('Project created successfully!');
         setShowCreateForm(false);
+        setShowProjectSelection(true);
+      } else {
+        alert(result?.error || 'Failed to create project');
       }
     }
   };

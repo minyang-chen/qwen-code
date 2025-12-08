@@ -377,5 +377,21 @@ export const teamApi = {
       headers: getAuthHeader()
     });
     return res.json();
+  },
+
+  // Projects
+  async createProject(teamId: string, data: any) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/projects`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async listProjects(teamId: string) {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/projects`, {
+      headers: getAuthHeader()
+    });
+    return res.json();
   }
 };

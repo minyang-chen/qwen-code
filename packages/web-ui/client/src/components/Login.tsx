@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export function Login() {
+export function Login({ onSuccess }: { onSuccess?: () => void }) {
   const [showOpenAI, setShowOpenAI] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
@@ -79,7 +79,11 @@ export function Login() {
 
         if (data.access_token) {
           clearInterval(interval);
-          window.location.href = '/';
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            window.location.href = '/';
+          }
         } else if (data.error && data.error !== 'authorization_pending') {
           clearInterval(interval);
           console.error('Token error:', data.error);
@@ -101,7 +105,11 @@ export function Login() {
       });
 
       if (res.ok) {
-        window.location.href = '/';
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          window.location.href = '/';
+        }
       } else {
         alert('Login failed. Please check your credentials.');
       }
@@ -119,7 +127,11 @@ export function Login() {
       });
 
       if (res.ok) {
-        window.location.href = '/';
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          window.location.href = '/';
+        }
       }
     } catch (error) {
       console.error('Login failed:', error);
