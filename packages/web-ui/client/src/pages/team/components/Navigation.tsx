@@ -37,14 +37,18 @@ export function Navigation({
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               {selectedTeam ? `${selectedTeam.team_name}` : 'Team Workspace'}
             </h1>
-            <select
-              value={workspaceType}
-              onChange={(e) => setWorkspaceType(e.target.value as WorkspaceType)}
-              className="px-3 py-1 text-sm border rounded"
-            >
-              <option value="private">Private</option>
-              <option value="team">Team</option>
-            </select>
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg border border-gray-300">
+              <span className={`text-xs font-medium ${workspaceType === 'private' ? 'text-blue-600' : 'text-gray-500'}`}>Private</span>
+              <button
+                type="button"
+                onClick={() => setWorkspaceType(workspaceType === 'private' ? 'team' : 'private')}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${workspaceType === 'team' ? 'bg-green-600' : 'bg-blue-600'}`}
+              >
+                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${workspaceType === 'team' ? 'translate-x-5' : 'translate-x-1'}`} />
+              </button>
+              <span className={`text-xs font-medium ${workspaceType === 'team' ? 'text-green-600' : 'text-gray-500'}`}>Team</span>
+            </div>
             <div className="flex gap-2">
               {tabs.map(tab => (
                 <button

@@ -1,6 +1,6 @@
 export type TabType = 'dashboard' | 'task-assistant' | 'project' | 'knowledge' | 'team' | 'profile';
 export type DashboardSubTab = 'notifications' | 'todo-list' | 'calendar';
-export type ProjectSubTab = 'requirements' | 'architecture' | 'design' | 'implementation' | 'tasks' | 'code' | 'issues' | 'meetings' | 'documents' | 'support';
+export type ProjectSubTab = 'project' | 'plan' | 'deliverable' | 'requirements' | 'analysis' | 'architecture' | 'design' | 'implementation' | 'tasks' | 'code' | 'issues' | 'meetings' | 'documents' | 'notes' | 'research' | 'report' | 'support';
 export type TeamSubTab = 'my-teams' | 'all-teams' | 'notifications';
 export type TeamActionTab = 'create' | 'join';
 export type WorkspaceType = 'private' | 'team';

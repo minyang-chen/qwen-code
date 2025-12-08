@@ -7,6 +7,7 @@ import {
 } from '../types/team.types';
 
 export function useProject() {
+  const [projects, setProjects] = useState<any[]>([]);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [architectures, setArchitectures] = useState<Architecture[]>([]);
   const [designs, setDesigns] = useState<Design[]>([]);
@@ -16,6 +17,21 @@ export function useProject() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
 
+  const [projectForm, setProjectForm] = useState({ 
+    name: '', description: '', status: '', manager: '', startDate: '', endDate: '', deadline: '', 
+    budget: '', marketSegments: '', products: '', targetUser: '', sponsor: '', funding: '', 
+    dependencies: '', approvals: [] as string[], teams: [] as string[], members: [] as string[] 
+  });
+
+  // Helper to get active project ID
+  const getActiveProjectId = () => {
+    try {
+      const activeProject = sessionStorage.getItem('activeProject');
+      return activeProject ? JSON.parse(activeProject).projectId : null;
+    } catch {
+      return null;
+    }
+  };
   const [reqForm, setReqForm] = useState<RequirementForm>({ title: '', description: '', priority: 'medium', status: 'draft' });
   const [archForm, setArchForm] = useState<ArchitectureForm>({ title: '', description: '', diagram_url: '' });
   const [designForm, setDesignForm] = useState<DesignForm>({ title: '', description: '', mockup_url: '' });
@@ -51,6 +67,110 @@ export function useProject() {
     }
   };
 
+  // Projects CRUD
+  const addProject = async (selectedTeam: Team | null) => {
+    if (!selectedTeam || !projectForm.name) return;
+    try {
+      const uniqueId = `PRJ-${Date.now().toString(36).toUpperCase()}`;
+      const item = { 
+        _id: Date.now().toString(), 
+        projectId: uniqueId,
+        ...projectForm,
+        approvals: projectForm.approvals || [],
+        teams: projectForm.teams || [],
+        members: projectForm.members || []
+      };
+      setProjects([item, ...projects]);
+      setProjectForm({ name: '', description: '', status: '', manager: '', startDate: '', endDate: '', deadline: '', budget: '', marketSegments: '', products: '', targetUser: '', sponsor: '', funding: '', dependencies: '', approvals: [], teams: [], members: [] });
+    } catch (err) {
+      console.error('Failed to add project');
+    }
+  };
+
+  const updateProject = async (selectedTeam: Team | null, id: string, data: any) => {
+    if (!selectedTeam) return;
+    try {
+      setProjects(projects.map(p => p._id === id ? data : p));
+    } catch (err) {
+      console.error('Failed to update project');
+    }
+  };
+
+  const deleteProject = async (selectedTeam: Team | null, id: string) => {
+    if (!selectedTeam) return;
+    try {
+      setProjects(projects.filter(p => p._id !== id));
+    } catch (err) {
+      console.error('Failed to delete project');
+    }
+  };
+
+  // Plans CRUD
+  const [plans, setPlans] = useState<any[]>([]);
+  const [planForm, setPlanForm] = useState({ phase: '', milestone: '', startDate: '', endDate: '' });
+
+  const addPlan = async (selectedTeam: Team | null) => {
+    if (!selectedTeam || !planForm.phase) return;
+    try {
+      const item = { _id: Date.now().toString(), projectId: getActiveProjectId(), ...planForm };
+      setPlans([item, ...plans]);
+      setPlanForm({ phase: '', milestone: '', startDate: '', endDate: '' });
+    } catch (err) {
+      console.error('Failed to add plan');
+    }
+  };
+
+  const updatePlan = async (selectedTeam: Team | null, id: string, data: any) => {
+    if (!selectedTeam) return;
+    try {
+      setPlans(plans.map(p => p._id === id ? data : p));
+    } catch (err) {
+      console.error('Failed to update plan');
+    }
+  };
+
+  const deletePlan = async (selectedTeam: Team | null, id: string) => {
+    if (!selectedTeam) return;
+    try {
+      setPlans(plans.filter(p => p._id !== id));
+    } catch (err) {
+      console.error('Failed to delete plan');
+    }
+  };
+
+  // Deliverables CRUD
+  const [deliverables, setDeliverables] = useState<any[]>([]);
+  const [deliverableForm, setDeliverableForm] = useState({ name: '', type: '', dueDate: '', status: '' });
+
+  const addDeliverable = async (selectedTeam: Team | null) => {
+    if (!selectedTeam || !deliverableForm.name) return;
+    try {
+      const item = { _id: Date.now().toString(), projectId: getActiveProjectId(), ...deliverableForm };
+      setDeliverables([item, ...deliverables]);
+      setDeliverableForm({ name: '', type: '', dueDate: '', status: '' });
+    } catch (err) {
+      console.error('Failed to add deliverable');
+    }
+  };
+
+  const updateDeliverable = async (selectedTeam: Team | null, id: string, data: any) => {
+    if (!selectedTeam) return;
+    try {
+      setDeliverables(deliverables.map(d => d._id === id ? data : d));
+    } catch (err) {
+      console.error('Failed to update deliverable');
+    }
+  };
+
+  const deleteDeliverable = async (selectedTeam: Team | null, id: string) => {
+    if (!selectedTeam) return;
+    try {
+      setDeliverables(deliverables.filter(d => d._id !== id));
+    } catch (err) {
+      console.error('Failed to delete deliverable');
+    }
+  };
+
   // Requirements CRUD
   const addRequirement = async (selectedTeam: Team | null) => {
     if (!selectedTeam || !reqForm.title) return;
@@ -80,6 +200,39 @@ export function useProject() {
       setRequirements(requirements.filter(r => r._id !== id));
     } catch (err) {
       console.error('Failed to delete requirement');
+    }
+  };
+
+  // Analyses CRUD
+  const [analyses, setAnalyses] = useState<any[]>([]);
+  const [analysisForm, setAnalysisForm] = useState({ title: '', type: '', findings: '', date: '' });
+
+  const addAnalysis = async (selectedTeam: Team | null) => {
+    if (!selectedTeam || !analysisForm.title) return;
+    try {
+      const item = { _id: Date.now().toString(), projectId: getActiveProjectId(), ...analysisForm };
+      setAnalyses([item, ...analyses]);
+      setAnalysisForm({ title: '', type: '', findings: '', date: '' });
+    } catch (err) {
+      console.error('Failed to add analysis');
+    }
+  };
+
+  const updateAnalysis = async (selectedTeam: Team | null, id: string, data: any) => {
+    if (!selectedTeam) return;
+    try {
+      setAnalyses(analyses.map(a => a._id === id ? data : a));
+    } catch (err) {
+      console.error('Failed to update analysis');
+    }
+  };
+
+  const deleteAnalysis = async (selectedTeam: Team | null, id: string) => {
+    if (!selectedTeam) return;
+    try {
+      setAnalyses(analyses.filter(a => a._id !== id));
+    } catch (err) {
+      console.error('Failed to delete analysis');
     }
   };
 
@@ -307,8 +460,111 @@ export function useProject() {
     }
   };
 
+  // Notes state and CRUD
+  const [notes, setNotes] = useState<any[]>([]);
+  const [noteForm, setNoteForm] = useState({ title: '', content: '', category: '', date: '' });
+
+  const addNote = async (selectedTeam: Team | null) => {
+    if (!selectedTeam || !noteForm.title) return;
+    try {
+      const item = { _id: Date.now().toString(), projectId: getActiveProjectId(), ...noteForm };
+      setNotes([item, ...notes]);
+      setNoteForm({ title: '', content: '', category: '', date: '' });
+    } catch (err) {
+      console.error('Failed to add note');
+    }
+  };
+
+  const updateNote = async (selectedTeam: Team | null, id: string, data: any) => {
+    if (!selectedTeam) return;
+    try {
+      setNotes(notes.map(n => n._id === id ? data : n));
+    } catch (err) {
+      console.error('Failed to update note');
+    }
+  };
+
+  const deleteNote = async (selectedTeam: Team | null, id: string) => {
+    if (!selectedTeam) return;
+    try {
+      setNotes(notes.filter(n => n._id !== id));
+    } catch (err) {
+      console.error('Failed to delete note');
+    }
+  };
+
+  // Research state and CRUD
+  const [research, setResearch] = useState<any[]>([]);
+  const [researchForm, setResearchForm] = useState({ topic: '', description: '', status: '', findings: '' });
+
+  const addResearch = async (selectedTeam: Team | null) => {
+    if (!selectedTeam || !researchForm.topic) return;
+    try {
+      const item = { _id: Date.now().toString(), projectId: getActiveProjectId(), ...researchForm };
+      setResearch([item, ...research]);
+      setResearchForm({ topic: '', description: '', status: '', findings: '' });
+    } catch (err) {
+      console.error('Failed to add research');
+    }
+  };
+
+  const updateResearch = async (selectedTeam: Team | null, id: string, data: any) => {
+    if (!selectedTeam) return;
+    try {
+      setResearch(research.map(r => r._id === id ? data : r));
+    } catch (err) {
+      console.error('Failed to update research');
+    }
+  };
+
+  const deleteResearch = async (selectedTeam: Team | null, id: string) => {
+    if (!selectedTeam) return;
+    try {
+      setResearch(research.filter(r => r._id !== id));
+    } catch (err) {
+      console.error('Failed to delete research');
+    }
+  };
+
+  // Reports state and CRUD
+  const [reports, setReports] = useState<any[]>([]);
+  const [reportForm, setReportForm] = useState({ title: '', type: '', date: '', summary: '' });
+
+  const addReport = async (selectedTeam: Team | null) => {
+    if (!selectedTeam || !reportForm.title) return;
+    try {
+      const item = { _id: Date.now().toString(), projectId: getActiveProjectId(), ...reportForm };
+      setReports([item, ...reports]);
+      setReportForm({ title: '', type: '', date: '', summary: '' });
+    } catch (err) {
+      console.error('Failed to add report');
+    }
+  };
+
+  const updateReport = async (selectedTeam: Team | null, id: string, data: any) => {
+    if (!selectedTeam) return;
+    try {
+      setReports(reports.map(r => r._id === id ? data : r));
+    } catch (err) {
+      console.error('Failed to update report');
+    }
+  };
+
+  const deleteReport = async (selectedTeam: Team | null, id: string) => {
+    if (!selectedTeam) return;
+    try {
+      setReports(reports.filter(r => r._id !== id));
+    } catch (err) {
+      console.error('Failed to delete report');
+    }
+  };
+
   return {
+    projects, setProjects, projectForm, setProjectForm, addProject, updateProject, deleteProject,
+    plans, setPlans, planForm, setPlanForm, addPlan, updatePlan, deletePlan,
+    deliverables, setDeliverables, deliverableForm, setDeliverableForm, addDeliverable, updateDeliverable, deleteDeliverable,
     requirements, setRequirements, reqForm, setReqForm, addRequirement, updateRequirement, deleteRequirement,
+    analyses, setAnalyses, analysisForm, setAnalysisForm, addAnalysis, updateAnalysis, deleteAnalysis,
     architectures, setArchitectures, archForm, setArchForm, addArchitecture, updateArchitecture, deleteArchitecture,
     designs, setDesigns, designForm, setDesignForm, addDesign, updateDesign, deleteDesign,
     implementations, setImplementations, implForm, setImplForm, addImplementation, updateImplementation, deleteImplementation,
@@ -316,6 +572,9 @@ export function useProject() {
     codeRepos, setCodeRepos, repoForm, setRepoForm, addCode, updateCode, deleteCode,
     issues, setIssues, issueForm, setIssueForm, addIssue, updateIssue, deleteIssue,
     meetings, setMeetings, meetingForm, setMeetingForm, addMeeting, updateMeeting, deleteMeeting,
+    notes, setNotes, noteForm, setNoteForm, addNote, updateNote, deleteNote,
+    research, setResearch, researchForm, setResearchForm, addResearch, updateResearch, deleteResearch,
+    reports, setReports, reportForm, setReportForm, addReport, updateReport, deleteReport,
     loadProjectData
   };
 }

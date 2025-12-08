@@ -23,9 +23,11 @@ export function TeamDashboard() {
   const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
   const [dashboardSubTab, setDashboardSubTab] = useState<DashboardSubTab>('notifications');
-  const [projectSubTab, setProjectSubTab] = useState<ProjectSubTab>('requirements');
+  const [projectSubTab, setProjectSubTab] = useState<ProjectSubTab>('project');
   const [teamSubTab, setTeamSubTab] = useState<TeamSubTab>('my-teams');
   const [teamActionTab, setTeamActionTab] = useState<TeamActionTab>('create');
+  const [activeProject, setActiveProject] = useState<any>(null);
+  const [showProjectSelection, setShowProjectSelection] = useState(true);
 
   // Initialize all hooks
   const profile = useProfile();
@@ -43,6 +45,13 @@ export function TeamDashboard() {
     todos.loadTodos();
     setUsername(localStorage.getItem('team_username') || '');
     profile.loadProfile();
+    
+    // Load active project from session storage
+    const savedProject = sessionStorage.getItem('activeProject');
+    if (savedProject) {
+      setActiveProject(JSON.parse(savedProject));
+      setShowProjectSelection(false);
+    }
   }, [workspaceType, selectedTeamId]);
 
   // Load notifications when team is selected
@@ -154,12 +163,40 @@ export function TeamDashboard() {
           projectSubTab={projectSubTab}
           setProjectSubTab={setProjectSubTab}
           selectedTeam={teams.selectedTeam}
+          activeProject={activeProject}
+          setActiveProject={setActiveProject}
+          showProjectSelection={showProjectSelection}
+          setShowProjectSelection={setShowProjectSelection}
+          projects={project.projects}
+          projectForm={project.projectForm}
+          setProjectForm={project.setProjectForm}
+          addProject={project.addProject}
+          updateProject={project.updateProject}
+          deleteProject={project.deleteProject}
+          plans={project.plans}
+          planForm={project.planForm}
+          setPlanForm={project.setPlanForm}
+          addPlan={project.addPlan}
+          updatePlan={project.updatePlan}
+          deletePlan={project.deletePlan}
+          deliverables={project.deliverables}
+          deliverableForm={project.deliverableForm}
+          setDeliverableForm={project.setDeliverableForm}
+          addDeliverable={project.addDeliverable}
+          updateDeliverable={project.updateDeliverable}
+          deleteDeliverable={project.deleteDeliverable}
           requirements={project.requirements}
           reqForm={project.reqForm}
           setReqForm={project.setReqForm}
           addRequirement={project.addRequirement}
           updateRequirement={project.updateRequirement}
           deleteRequirement={project.deleteRequirement}
+          analyses={project.analyses}
+          analysisForm={project.analysisForm}
+          setAnalysisForm={project.setAnalysisForm}
+          addAnalysis={project.addAnalysis}
+          updateAnalysis={project.updateAnalysis}
+          deleteAnalysis={project.deleteAnalysis}
           architectures={project.architectures}
           archForm={project.archForm}
           setArchForm={project.setArchForm}
@@ -202,7 +239,29 @@ export function TeamDashboard() {
           addMeeting={project.addMeeting}
           updateMeeting={project.updateMeeting}
           deleteMeeting={project.deleteMeeting}
+          notes={project.notes}
+          noteForm={project.noteForm}
+          setNoteForm={project.setNoteForm}
+          addNote={project.addNote}
+          updateNote={project.updateNote}
+          deleteNote={project.deleteNote}
+          research={project.research}
+          researchForm={project.researchForm}
+          setResearchForm={project.setResearchForm}
+          addResearch={project.addResearch}
+          updateResearch={project.updateResearch}
+          deleteResearch={project.deleteResearch}
+          reports={project.reports}
+          reportForm={project.reportForm}
+          setReportForm={project.setReportForm}
+          addReport={project.addReport}
+          updateReport={project.updateReport}
+          deleteReport={project.deleteReport}
+          setProjects={project.setProjects}
+          setPlans={project.setPlans}
+          setDeliverables={project.setDeliverables}
           setRequirements={project.setRequirements}
+          setAnalyses={project.setAnalyses}
           setArchitectures={project.setArchitectures}
           setDesigns={project.setDesigns}
           setImplementations={project.setImplementations}
@@ -210,6 +269,9 @@ export function TeamDashboard() {
           setCodeRepos={project.setCodeRepos}
           setIssues={project.setIssues}
           setMeetings={project.setMeetings}
+          setNotes={project.setNotes}
+          setResearch={project.setResearch}
+          setReports={project.setReports}
         />
       ) : activeTab === 'knowledge' ? (
         <KnowledgeTab

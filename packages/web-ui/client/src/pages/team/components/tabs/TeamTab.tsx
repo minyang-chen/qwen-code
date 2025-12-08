@@ -218,7 +218,7 @@ export function TeamTab(props: TeamTabProps) {
                       </li>
                     ))
                   ) : (
-                    <li key="no-notifications" className="text-gray-500 text-sm py-4">No notifications for this team</li>
+                    <li className="text-gray-500 text-sm py-4">No notifications for this team</li>
                   )}
                 </ul>
               </div>
