@@ -8,12 +8,15 @@ type Part = { text?: string; inlineData?: { mimeType: string; data: string } };
 
 export class ClientAdapter {
   private toolExecutor: ToolExecutor;
+  private onTokenUsage?: (inputTokens: number, outputTokens: number) => void;
 
   constructor(
     private client: Client,
     toolExecutor: ToolExecutor,
+    onTokenUsage?: (inputTokens: number, outputTokens: number) => void,
   ) {
     this.toolExecutor = toolExecutor;
+    this.onTokenUsage = onTokenUsage;
   }
 
   async sendMessage(
@@ -27,6 +30,7 @@ export class ClientAdapter {
       const promptId = nanoid();
       const toolCallNames = new Map<string, string>();
       const toolRequests: ToolCallRequestInfo[] = [];
+      let tokenUsage = { inputTokens: 0, outputTokens: 0 };
 
       if (signal) {
         signal.addEventListener('abort', () => abortController.abort());
@@ -45,6 +49,11 @@ export class ClientAdapter {
             type: 'text',
             data: { text: chunk.value },
           });
+        } else if (chunk.type === 'usage' && chunk.value) {
+          tokenUsage = {
+            inputTokens: chunk.value.inputTokens || 0,
+            outputTokens: chunk.value.outputTokens || 0,
+          };
         } else if (chunk.type === 'tool_call_request') {
           toolCallNames.set(chunk.value.callId, chunk.value.name);
           toolRequests.push(chunk.value);
@@ -68,9 +77,14 @@ export class ClientAdapter {
 
       // Execute tools if any were requested
       if (toolRequests.length > 0 && !abortController.signal.aborted) {
+        console.log('🔧 Executing tools:', toolRequests.length);
         const toolResults = await this.toolExecutor.executeTools(
           toolRequests,
           abortController.signal,
+        );
+        console.log(
+          '🔧 Tool results received:',
+          JSON.stringify(toolResults, null, 2),
         );
 
         // Emit tool results to frontend
@@ -90,9 +104,21 @@ export class ClientAdapter {
 
         // Submit tool responses back to continue conversation
         const responseParts = toolResults.flatMap((r) => r.responseParts);
+        console.log(
+          '🔧 Sending response parts back to model:',
+          JSON.stringify(responseParts, null, 2),
+        );
 
         await this.sendMessage(responseParts, socket, signal, true);
         return;
+      }
+
+      // Emit token usage if available
+      if (tokenUsage.inputTokens > 0 || tokenUsage.outputTokens > 0) {
+        if (this.onTokenUsage) {
+          this.onTokenUsage(tokenUsage.inputTokens, tokenUsage.outputTokens);
+        }
+        socket.emit('token:usage', tokenUsage);
       }
 
       socket.emit('message:complete');

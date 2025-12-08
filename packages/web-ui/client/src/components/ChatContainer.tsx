@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ToolApproval } from './ToolApproval';
@@ -13,6 +13,7 @@ export function ChatContainer() {
   const { socket, isConnected } = useWebSocket();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [sessionTokenLimit, setSessionTokenLimit] = useState(32000);
   const {
     sessionId,
     messages,
@@ -33,7 +34,31 @@ export function ChatContainer() {
     openSettings,
     closeSettings,
     setSessionStats,
+    startStreaming,
+    updateStreamMetrics,
   } = useChatStore();
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((settings) => setSessionTokenLimit(settings.sessionTokenLimit))
+      .catch((err) => console.error('Failed to load settings:', err));
+  }, []);
+
+  const loadStats = useCallback(async () => {
+    if (!sessionId) return;
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/stats`, {
+        credentials: 'include',
+      });
+      if (res.ok) {
+        const stats = await res.json();
+        setSessionStats(stats);
+      }
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    }
+  }, [sessionId, setSessionStats]);
 
   useEffect(() => {
     if (!socket) return;
@@ -43,6 +68,8 @@ export function ChatContainer() {
       (chunk: { type: string; data: { text?: string } }) => {
         if (chunk.type === 'text' && chunk.data.text) {
           appendToCurrentMessage(chunk.data.text);
+          const tokenCount = Math.ceil(chunk.data.text.length / 4);
+          updateStreamMetrics(tokenCount);
         }
       },
     );
@@ -83,6 +110,10 @@ export function ChatContainer() {
       openFile(data);
     });
 
+    socket.on('token:usage', () => {
+      loadStats();
+    });
+
     return () => {
       socket.off('message:chunk');
       socket.off('message:complete');
@@ -90,6 +121,7 @@ export function ChatContainer() {
       socket.off('tool:call');
       socket.off('tool:response');
       socket.off('file:open');
+      socket.off('token:usage');
     };
   }, [
     socket,
@@ -98,22 +130,9 @@ export function ChatContainer() {
     setStreaming,
     addMessage,
     openFile,
+    loadStats,
+    updateStreamMetrics,
   ]);
-
-  const loadStats = async () => {
-    if (!sessionId) return;
-    try {
-      const res = await fetch(`/api/sessions/${sessionId}/stats`, {
-        credentials: 'include',
-      });
-      if (res.ok) {
-        const stats = await res.json();
-        setSessionStats(stats);
-      }
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-    }
-  };
 
   const handleCompress = async () => {
     if (!sessionId) return;
@@ -138,6 +157,72 @@ export function ChatContainer() {
   const handleSend = (message: string, files?: FileAttachment[]) => {
     if (!sessionId || !socket) return;
 
+    // Handle commands
+    if (message.startsWith('/')) {
+      const command = message.trim().toLowerCase();
+
+      if (command === '/help') {
+        addMessage({
+          id: Date.now().toString(),
+          role: 'system',
+          content: `**Available Commands:**
+- \`/help\` - Show this help message
+- \`/clear\` - Clear conversation history
+- \`/compress\` - Compress conversation to save tokens
+- \`/stats\` - Show session statistics
+- \`/directory\` - Show current working directory
+- \`/memory\` - Show memory usage
+- \`/tools\` - List available tools
+- \`/extensions\` - List loaded extensions
+- \`/mcp\` - Show MCP server status
+
+**Sandbox Commands:**
+- \`/my_sandbox\` - Show current sandbox information
+- \`/restart_sandbox\` - Restart Docker sandbox
+- \`/reset_sandbox\` - Reset Docker sandbox to clean state
+- \`/save_sandbox [name]\` - Save current sandbox state
+- \`/load_sandbox <name>\` - Load saved sandbox state
+- \`/list_snapshots\` - List available sandbox snapshots`,
+          timestamp: new Date(),
+        });
+        return;
+      }
+
+      if (command === '/clear') {
+        if (confirm('Clear all conversation history?')) {
+          useChatStore.getState().clearMessages();
+          addMessage({
+            id: Date.now().toString(),
+            role: 'system',
+            content: '✅ Conversation history cleared',
+            timestamp: new Date(),
+          });
+        }
+        return;
+      }
+
+      if (command === '/compress') {
+        handleCompress();
+        return;
+      }
+
+      if (command === '/stats') {
+        loadStats();
+        setShowStats(true);
+        return;
+      }
+
+      // For other commands, send to server
+      socket.emit('chat:command', { sessionId, command: message });
+      addMessage({
+        id: Date.now().toString(),
+        role: 'user',
+        content: message,
+        timestamp: new Date(),
+      });
+      return;
+    }
+
     addMessage({
       id: Date.now().toString(),
       role: 'user',
@@ -147,6 +232,7 @@ export function ChatContainer() {
     });
 
     setStreaming(true);
+    startStreaming();
     socket.emit('chat:message', { sessionId, message, files });
   };
 
@@ -340,13 +426,14 @@ export function ChatContainer() {
 
         {showStats && sessionStats && (
           <div className="max-w-5xl mx-auto mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex gap-6 text-sm">
                 <span className="text-gray-700">
                   <strong>Messages:</strong> {sessionStats.messageCount}
                 </span>
                 <span className="text-gray-700">
-                  <strong>Est. Tokens:</strong> {sessionStats.estimatedTokens}
+                  <strong>Tokens:</strong>{' '}
+                  {sessionStats.tokenUsage?.totalTokens || 0}
                 </span>
               </div>
               <button
@@ -356,6 +443,34 @@ export function ChatContainer() {
                 Compress History
               </button>
             </div>
+            {sessionStats.tokenUsage && (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full transition-all ${
+                      sessionStats.tokenUsage.totalTokens / sessionTokenLimit >=
+                      0.9
+                        ? 'bg-red-500'
+                        : sessionStats.tokenUsage.totalTokens /
+                              sessionTokenLimit >=
+                            0.8
+                          ? 'bg-yellow-500'
+                          : 'bg-green-500'
+                    }`}
+                    style={{
+                      width: `${Math.min((sessionStats.tokenUsage.totalTokens / sessionTokenLimit) * 100, 100)}%`,
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-gray-600 min-w-[60px]">
+                  {Math.round(
+                    (sessionStats.tokenUsage.totalTokens / sessionTokenLimit) *
+                      100,
+                  )}
+                  %
+                </span>
+              </div>
+            )}
           </div>
         )}
       </header>

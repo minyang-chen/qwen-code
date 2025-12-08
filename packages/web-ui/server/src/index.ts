@@ -1,25 +1,22 @@
-import { config } from 'dotenv';
-import { resolve } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import './config.js';
+import {
+  PORT,
+  BASE_URL,
+  JWT_SECRET,
+  QWEN_CLIENT_ID,
+  QWEN_CLIENT_SECRET,
+  OPENAI_API_KEY,
+  OPENAI_BASE_URL,
+  OPENAI_MODEL,
+  CORS_ORIGIN,
+  MESSAGE_WINDOW_SIZE,
+  SESSION_TOKEN_LIMIT,
+} from './config.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const envPath = resolve(__dirname, '../../../../.env');
-console.log('Loading .env from:', envPath);
-const result = config({ path: envPath });
-if (result.error) {
-  console.error('Error loading .env:', result.error);
-} else {
-  console.log('.env loaded successfully');
-}
-console.log('Environment variables after loading:');
-console.log(
-  'OPENAI_API_KEY:',
-  process.env.OPENAI_API_KEY?.substring(0, 10) + '...',
-);
-console.log('OPENAI_BASE_URL:', process.env.OPENAI_BASE_URL);
-console.log('OPENAI_MODEL:', process.env.OPENAI_MODEL);
+console.log('Centralized config loaded');
+console.log('OPENAI_API_KEY:', OPENAI_API_KEY?.substring(0, 10) + '...');
+console.log('OPENAI_BASE_URL:', OPENAI_BASE_URL);
+console.log('OPENAI_MODEL:', OPENAI_MODEL);
 
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
@@ -30,15 +27,12 @@ import { setupWebSocket } from './websocket.js';
 import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
-const PORT = parseInt(process.env.PORT || '3000');
-
 const app = Fastify({ logger: true });
 const sessionManager = new SessionManager();
 
 // Middleware
 await app.register(cors, {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: CORS_ORIGIN,
   credentials: true,
 });
 await app.register(cookie);
@@ -53,8 +47,8 @@ async function refreshAccessToken(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        client_id: process.env.QWEN_CLIENT_ID,
-        client_secret: process.env.QWEN_CLIENT_SECRET,
+        client_id: QWEN_CLIENT_ID,
+        client_secret: QWEN_CLIENT_SECRET,
         refresh_token: refreshToken,
         grant_type: 'refresh_token',
       }),
@@ -112,7 +106,7 @@ app.post('/api/auth/oauth/qwen/device', async (request, reply) => {
         Accept: 'application/json',
       },
       body: new URLSearchParams({
-        client_id: process.env.QWEN_CLIENT_ID!,
+        client_id: QWEN_CLIENT_ID!,
         scope: 'openid profile email model.completion',
         code_challenge,
         code_challenge_method,
@@ -144,7 +138,7 @@ app.post('/api/auth/oauth/qwen/token', async (request, reply) => {
       },
       body: new URLSearchParams({
         grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-        client_id: process.env.QWEN_CLIENT_ID!,
+        client_id: QWEN_CLIENT_ID!,
         device_code,
         code_verifier,
       }),
@@ -190,8 +184,8 @@ app.post('/api/auth/oauth/qwen/token', async (request, reply) => {
 
 app.get('/api/auth/oauth/qwen', async (request, reply) => {
   const state = nanoid();
-  const redirectUri = `${process.env.BASE_URL || 'http://localhost:3000'}/api/auth/oauth/callback`;
-  const authUrl = `https://chat.qwen.ai/api/v1/oauth2/authorize?client_id=${process.env.QWEN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
+  const redirectUri = `${BASE_URL}/api/auth/oauth/callback`;
+  const authUrl = `https://chat.qwen.ai/api/v1/oauth2/authorize?client_id=${QWEN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
 
   reply.setCookie('oauth_state', state, {
     httpOnly: true,
@@ -218,11 +212,11 @@ app.get('/api/auth/oauth/callback', async (request, reply) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        client_id: process.env.QWEN_CLIENT_ID,
-        client_secret: process.env.QWEN_CLIENT_SECRET,
+        client_id: QWEN_CLIENT_ID,
+        client_secret: QWEN_CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: `${process.env.BASE_URL || 'http://localhost:3000'}/api/auth/oauth/callback`,
+        redirect_uri: `${BASE_URL}/api/auth/oauth/callback`,
       }),
     });
 
@@ -291,12 +285,19 @@ app.post('/api/auth/login/openai', async (request, reply) => {
     return reply.code(400).send({ error: 'API key is required' });
   }
 
-  const userId = nanoid();
+  // Use hash of API key as userId for consistent workspace
+  const crypto = await import('crypto');
+  const userId = crypto
+    .createHash('sha256')
+    .update(apiKey)
+    .digest('hex')
+    .substring(0, 16);
+
   const credentials = {
     type: 'openai',
     apiKey,
-    baseUrl: baseUrl || process.env.OPENAI_BASE_URL,
-    model: model || process.env.OPENAI_MODEL,
+    baseUrl: baseUrl || OPENAI_BASE_URL,
+    model: model || OPENAI_MODEL,
   };
 
   const token = jwt.sign({ userId, credentials }, JWT_SECRET, {
@@ -319,6 +320,54 @@ app.post('/api/auth/login/openai', async (request, reply) => {
   });
 
   return { userId, token };
+});
+
+app.get('/api/config/:type', async (request) => {
+  const { type } = request.params as { type: 'individual' | 'team' };
+
+  if (type === 'individual') {
+    return {
+      'Qwen OAuth Client ID': QWEN_CLIENT_ID || 'Not configured',
+      'OpenAI API Key': OPENAI_API_KEY
+        ? OPENAI_API_KEY.substring(0, 10) + '...'
+        : 'Not configured',
+      'OpenAI Base URL': OPENAI_BASE_URL || 'Not configured',
+      'OpenAI Model': OPENAI_MODEL || 'Not configured',
+      'JWT Secret': JWT_SECRET ? '***configured***' : 'Not configured',
+    };
+  } else {
+    return {
+      'PostgreSQL Host': process.env.POSTGRES_HOST || 'Not configured',
+      'PostgreSQL Port': process.env.POSTGRES_PORT || 'Not configured',
+      'PostgreSQL Database': process.env.POSTGRES_DB || 'Not configured',
+      'MongoDB URI': process.env.MONGODB_URI
+        ? process.env.MONGODB_URI.replace(/:[^:@]+@/, ':***@')
+        : 'Not configured',
+      'NFS Base Path': process.env.NFS_BASE_PATH || 'Not configured',
+      'OpenAI Base URL': OPENAI_BASE_URL || 'Not configured',
+      'OpenAI Model': OPENAI_MODEL || 'Not configured',
+      'Embedding Base URL': process.env.EMBEDDING_BASE_URL || 'Not configured',
+      'Embedding Model': process.env.EMBEDDING_MODEL || 'Not configured',
+    };
+  }
+});
+
+app.get('/api/sessions/:id/stats', async (request, reply) => {
+  const { id } = request.params as { id: string };
+  const stats = sessionManager.getSessionStats(id);
+
+  if (!stats) {
+    return reply.code(404).send({ error: 'Session not found' });
+  }
+
+  return stats;
+});
+
+app.get('/api/settings', async () => {
+  return {
+    messageWindowSize: MESSAGE_WINDOW_SIZE,
+    sessionTokenLimit: SESSION_TOKEN_LIMIT,
+  };
 });
 
 app.get('/api/auth/info', async (request, reply) => {
@@ -446,41 +495,10 @@ app.post('/api/sessions/:id/compress', async (request, reply) => {
   }
 });
 
-app.get('/api/sessions/:id/stats', async (request, reply) => {
-  const { id } = request.params as { id: string };
-  const token = request.cookies.auth_token;
-  const user = token ? verifyToken(token) : null;
-
-  if (!user) {
-    return reply.code(401).send({ error: 'Unauthorized' });
-  }
-
-  try {
-    const session = sessionManager.getSession(id);
-    if (!session) {
-      return reply.code(404).send({ error: 'Session not found' });
-    }
-
-    const history = session.client.getHistory();
-    const tokenCount = history.reduce(
-      (sum, msg) => sum + (msg.content?.length || 0),
-      0,
-    );
-
-    return {
-      messageCount: history.length,
-      estimatedTokens: Math.ceil(tokenCount / 4),
-    };
-  } catch (error) {
-    console.error('Stats fetch failed:', error);
-    return reply.code(500).send({ error: 'Failed to fetch stats' });
-  }
-});
-
 // WebSocket
 const io = new SocketServer(app.server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: CORS_ORIGIN,
     credentials: true,
   },
 });

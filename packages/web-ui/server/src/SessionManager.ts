@@ -5,6 +5,14 @@ import {
   AuthType,
 } from '@qwen-code/core';
 import { nanoid } from 'nanoid';
+import {
+  OPENAI_API_KEY,
+  OPENAI_BASE_URL,
+  OPENAI_MODEL,
+  NFS_BASE_PATH,
+} from './config.js';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export interface Session {
   id: string;
@@ -13,6 +21,11 @@ export interface Session {
   config: Config;
   createdAt: Date;
   lastActivity: Date;
+  tokenUsage: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
 }
 
 interface UserCredentials {
@@ -76,13 +89,13 @@ export class SessionManager {
       authType = AuthType.QWEN_OAUTH;
     } else if (userCredentials?.type === 'openai') {
       apiKey = userCredentials.apiKey;
-      baseUrl = userCredentials.baseUrl || process.env.OPENAI_BASE_URL;
-      model = userCredentials.model || process.env.OPENAI_MODEL;
+      baseUrl = userCredentials.baseUrl || OPENAI_BASE_URL;
+      model = userCredentials.model || OPENAI_MODEL;
       authType = AuthType.USE_OPENAI;
     } else {
-      apiKey = process.env.OPENAI_API_KEY;
-      baseUrl = process.env.OPENAI_BASE_URL;
-      model = process.env.OPENAI_MODEL || 'gpt-4';
+      apiKey = OPENAI_API_KEY;
+      baseUrl = OPENAI_BASE_URL;
+      model = OPENAI_MODEL || 'gpt-4';
       authType = AuthType.USE_OPENAI;
     }
 
@@ -112,8 +125,38 @@ export class SessionManager {
 
     console.log('Normalized baseUrl:', baseUrl);
 
-    const targetDir = workingDirectory || process.cwd();
-    const cwd = workingDirectory || process.cwd();
+    // Create user workspace in NFS for individual sessions
+    let targetDir: string;
+    let cwd: string;
+
+    if (workingDirectory) {
+      // Use provided working directory (for team mode)
+      targetDir = workingDirectory;
+      cwd = workingDirectory;
+    } else {
+      // Create individual user workspace in NFS
+      const userWorkspace = path.resolve(
+        process.cwd(),
+        NFS_BASE_PATH,
+        'individual',
+        userId,
+      );
+      await fs.mkdir(userWorkspace, { recursive: true });
+
+      // Create a README in the workspace
+      const readmePath = path.join(userWorkspace, 'README.md');
+      try {
+        await fs.access(readmePath);
+      } catch {
+        await fs.writeFile(
+          readmePath,
+          `# User Workspace\n\nThis is your personal workspace for code development.\n\nUser ID: ${userId}\nCreated: ${new Date().toISOString()}\n`,
+        );
+      }
+
+      targetDir = userWorkspace;
+      cwd = userWorkspace;
+    }
 
     const config = new Config({
       sessionId,
@@ -124,6 +167,17 @@ export class SessionManager {
       mcpServers: {},
       includeDirectories: [],
       model,
+      sandbox: {
+        command: 'docker',
+        image: 'node:20-bookworm',
+      },
+    });
+
+    console.log('Session config created with sandbox:', {
+      sessionId,
+      targetDir,
+      cwd,
+      sandbox: config.getSandbox(),
     });
 
     await config.initialize();
@@ -146,6 +200,11 @@ export class SessionManager {
       config,
       createdAt: new Date(),
       lastActivity: new Date(),
+      tokenUsage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+      },
     };
     this.sessions.set(session.id, session);
     return session;
@@ -167,6 +226,31 @@ export class SessionManager {
     return Array.from(this.sessions.values()).filter(
       (s) => s.userId === userId,
     );
+  }
+
+  updateTokenUsage(
+    sessionId: string,
+    inputTokens: number,
+    outputTokens: number,
+  ): void {
+    const session = this.sessions.get(sessionId);
+    if (session) {
+      session.tokenUsage.inputTokens += inputTokens;
+      session.tokenUsage.outputTokens += outputTokens;
+      session.tokenUsage.totalTokens += inputTokens + outputTokens;
+    }
+  }
+
+  getSessionStats(sessionId: string) {
+    const session = this.sessions.get(sessionId);
+    if (!session) return null;
+
+    return {
+      tokenUsage: session.tokenUsage,
+      messageCount: session.client.getTurnCount(),
+      createdAt: session.createdAt,
+      lastActivity: session.lastActivity,
+    };
   }
 
   cleanup(maxAge: number = 3600000): void {

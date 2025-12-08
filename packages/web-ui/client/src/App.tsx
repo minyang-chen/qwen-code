@@ -6,11 +6,15 @@ import { useChatStore } from './store/chatStore';
 export function App() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const { setSessionId, setSessions, addSession } = useChatStore();
+  const { setSessionId, setSessions, addSession, loadSettings } =
+    useChatStore();
 
   useEffect(() => {
     async function init() {
       try {
+        // Load settings first
+        await loadSettings();
+
         // Check authentication first
         const authRes = await fetch('/api/sessions', {
           credentials: 'include',
@@ -53,11 +57,11 @@ export function App() {
           }
         }
         setAuthenticated(true);
-        
-        // Redirect to /individual/agent if authenticated and on login page
+
+        // Redirect to /individual/codeagent if authenticated and on login page
         const path = window.location.pathname;
         if (path === '/individual/login') {
-          window.history.replaceState({}, '', '/individual/agent');
+          window.history.replaceState({}, '', '/individual/codeagent');
         }
       } catch (error) {
         console.error('Initialization error:', error);
@@ -68,11 +72,11 @@ export function App() {
     }
 
     init();
-  }, [setSessionId, setSessions, addSession]);
+  }, [setSessionId, setSessions, addSession, loadSettings]);
 
   const handleLoginSuccess = () => {
     setAuthenticated(true);
-    window.location.href = '/individual/agent';
+    window.location.href = '/individual/codeagent';
   };
 
   if (loading) {
