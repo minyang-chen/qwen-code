@@ -33,7 +33,7 @@ export function ProjectSection({
   const showSubTabs = title === 'Project';
   
   // Show stats for multiple sections
-  const showStats = ['Analysis', 'Plan', 'Deliverable', 'Requirements', 'Architecture', 'Design', 'Implementation', 'Tasks', 'Code Repositories', 'Issues', 'Meetings', 'Documents', 'Notes', 'Research'].includes(title);
+  const showStats = ['Analysis', 'Plan', 'Deliverable', 'Requirements', 'Architecture', 'Design', 'Implementation', 'Tasks', 'Code Repositories', 'Issues', 'Meetings', 'Documents', 'Notes', 'Research', 'Report'].includes(title);
 
   const safeItems = items || [];
   const total = safeItems.length;
@@ -832,6 +832,58 @@ export function ProjectSection({
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats - For Report section */}
+      {showStats && title === 'Report' && (
+        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">Total Reports</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{total}</p>
+                </div>
+                <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">Weekly</p>
+                  <p className="text-2xl font-bold text-blue-600 mt-1">{safeItems.filter((r: any) => r.type?.toLowerCase().includes('weekly')).length}</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">Monthly</p>
+                  <p className="text-2xl font-bold text-purple-600 mt-1">{safeItems.filter((r: any) => r.type?.toLowerCase().includes('monthly')).length}</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">With Summary</p>
+                  <p className="text-2xl font-bold text-green-600 mt-1">{safeItems.filter((r: any) => r.summary && r.summary.trim()).length}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/></svg>
                 </div>
               </div>
             </div>
