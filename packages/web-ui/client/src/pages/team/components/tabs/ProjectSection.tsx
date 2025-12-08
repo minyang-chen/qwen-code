@@ -33,7 +33,7 @@ export function ProjectSection({
   const showSubTabs = title === 'Project';
   
   // Show stats for multiple sections
-  const showStats = ['Analysis', 'Plan', 'Deliverable', 'Requirements', 'Architecture', 'Design', 'Implementation', 'Tasks', 'Code Repositories', 'Issues', 'Meetings', 'Documents', 'Notes'].includes(title);
+  const showStats = ['Analysis', 'Plan', 'Deliverable', 'Requirements', 'Architecture', 'Design', 'Implementation', 'Tasks', 'Code Repositories', 'Issues', 'Meetings', 'Documents', 'Notes', 'Research'].includes(title);
 
   const safeItems = items || [];
   const total = safeItems.length;
@@ -720,6 +720,58 @@ export function ProjectSection({
                 </div>
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                   <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats - For Research section */}
+      {showStats && title === 'Research' && (
+        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">Total Research</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{total}</p>
+                </div>
+                <div className="w-12 h-12 bg-violet-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-violet-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"/></svg>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">Completed</p>
+                  <p className="text-2xl font-bold text-green-600 mt-1">{safeItems.filter((r: any) => r.status?.toLowerCase() === 'completed').length}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">In Progress</p>
+                  <p className="text-2xl font-bold text-blue-600 mt-1">{safeItems.filter((r: any) => r.status?.toLowerCase().includes('progress')).length}</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/></svg>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">With Findings</p>
+                  <p className="text-2xl font-bold text-purple-600 mt-1">{safeItems.filter((r: any) => r.findings && r.findings.trim()).length}</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
                 </div>
               </div>
             </div>
