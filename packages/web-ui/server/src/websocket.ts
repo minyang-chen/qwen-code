@@ -51,7 +51,10 @@ export function setupWebSocket(
 
         // Get or create sandbox for user
         const sandbox = SANDBOX_ENABLED
-          ? await sandboxManager.getSandbox(session.userId, session.config.cwd)
+          ? await sandboxManager.getSandbox(
+              session.userId,
+              session.config.getWorkingDir(),
+            )
           : null;
 
         // Update activity
@@ -153,7 +156,10 @@ export function setupWebSocket(
       }
 
       const sandbox = SANDBOX_ENABLED
-        ? await sandboxManager.getSandbox(session.userId, session.config.cwd)
+        ? await sandboxManager.getSandbox(
+            session.userId,
+            session.config.getWorkingDir(),
+          )
         : null;
       const toolExecutor = new SandboxedToolExecutor(
         session.config,
@@ -173,7 +179,10 @@ export function setupWebSocket(
       }
 
       const sandbox = SANDBOX_ENABLED
-        ? await sandboxManager.getSandbox(session.userId, session.config.cwd)
+        ? await sandboxManager.getSandbox(
+            session.userId,
+            session.config.getWorkingDir(),
+          )
         : null;
       const toolExecutor = new SandboxedToolExecutor(
         session.config,
@@ -200,7 +209,10 @@ export function setupWebSocket(
 
         // Get sandbox
         const sandbox = SANDBOX_ENABLED
-          ? await sandboxManager.getSandbox(session.userId, session.config.cwd)
+          ? await sandboxManager.getSandbox(
+              session.userId,
+              session.config.getWorkingDir(),
+            )
           : null;
 
         if (cmd === '/my_sandbox' && sandbox) {
@@ -337,7 +349,7 @@ export function setupWebSocket(
           socket.emit('message:chunk', {
             type: 'text',
             data: {
-              text: `📁 **Current Directory:** \`${session.config.cwd}\``,
+              text: `📁 **Current Directory:** \`${session.config.getWorkingDir()}\``,
             },
           });
           socket.emit('message:complete');

@@ -49,10 +49,10 @@ export class ClientAdapter {
             type: 'text',
             data: { text: chunk.value },
           });
-        } else if (chunk.type === 'usage' && chunk.value) {
+        } else if (chunk.type === 'finished' && chunk.value?.usageMetadata) {
           tokenUsage = {
-            inputTokens: chunk.value.inputTokens || 0,
-            outputTokens: chunk.value.outputTokens || 0,
+            inputTokens: chunk.value.usageMetadata.promptTokenCount || 0,
+            outputTokens: chunk.value.usageMetadata.candidatesTokenCount || 0,
           };
         } else if (chunk.type === 'tool_call_request') {
           toolCallNames.set(chunk.value.callId, chunk.value.name);
@@ -109,7 +109,8 @@ export class ClientAdapter {
           JSON.stringify(responseParts, null, 2),
         );
 
-        await this.sendMessage(responseParts, socket, signal, true);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await this.sendMessage(responseParts as any, socket, signal, true);
         return;
       }
 

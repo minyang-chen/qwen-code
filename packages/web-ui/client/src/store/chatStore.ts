@@ -16,7 +16,7 @@ export interface FileAttachment {
 
 export interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
   toolCalls?: ToolCall[];
@@ -36,7 +36,13 @@ export interface Session {
 
 export interface SessionStats {
   messageCount: number;
-  estimatedTokens: number;
+  tokenUsage?: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
+  createdAt: Date;
+  lastActivity: Date;
 }
 
 interface ChatStore {
@@ -49,6 +55,10 @@ interface ChatStore {
   currentFile: FileView | null;
   isSettingsOpen: boolean;
   sessionStats: SessionStats | null;
+  messageWindowSize: number;
+  tokensPerSecond: number;
+  streamStartTime: number | null;
+  streamTokenCount: number;
 
   setSessionId: (id: string) => void;
   setSessions: (sessions: Session[]) => void;
@@ -71,6 +81,9 @@ interface ChatStore {
   openSettings: () => void;
   closeSettings: () => void;
   setSessionStats: (stats: SessionStats | null) => void;
+  loadSettings: () => Promise<void>;
+  startStreaming: () => void;
+  updateStreamMetrics: (tokenCount: number) => void;
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -83,6 +96,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   currentFile: null,
   isSettingsOpen: false,
   sessionStats: null,
+  messageWindowSize: 100,
+  tokensPerSecond: 0,
+  streamStartTime: null,
+  streamTokenCount: 0,
 
   setSessionId: (id) => set({ sessionId: id }),
 
@@ -95,7 +112,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set((state) => ({ sessions: state.sessions.filter((s) => s.id !== id) })),
 
   addMessage: (message) =>
-    set((state) => ({ messages: [...state.messages, message] })),
+    set((state) => {
+      const newMessages = [...state.messages, message];
+      return { messages: newMessages.slice(-state.messageWindowSize) };
+    }),
 
   appendToCurrentMessage: (text) =>
     set((state) => ({ currentMessage: state.currentMessage + text })),
@@ -169,4 +189,32 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   closeSettings: () => set({ isSettingsOpen: false }),
 
   setSessionStats: (stats) => set({ sessionStats: stats }),
+
+  startStreaming: () =>
+    set({
+      streamStartTime: Date.now(),
+      streamTokenCount: 0,
+      tokensPerSecond: 0,
+    }),
+
+  updateStreamMetrics: (tokenCount) => {
+    const state = get();
+    if (state.streamStartTime) {
+      const elapsed = (Date.now() - state.streamStartTime) / 1000;
+      const tps = elapsed > 0 ? tokenCount / elapsed : 0;
+      set({ streamTokenCount: tokenCount, tokensPerSecond: Math.round(tps) });
+    }
+  },
+
+  loadSettings: async () => {
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const settings = await res.json();
+        set({ messageWindowSize: settings.messageWindowSize });
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+    }
+  },
 }));

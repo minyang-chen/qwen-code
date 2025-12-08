@@ -34,7 +34,7 @@ export class ToolExecutor {
         config: (originalScheduler as unknown as { config: Config }).config,
         chatRecordingService: (
           originalScheduler as unknown as {
-            chatRecordingService: Config['getChatRecordingService'];
+            chatRecordingService: ReturnType<Config['getChatRecordingService']>;
           }
         ).chatRecordingService,
         outputUpdateHandler: () => {},

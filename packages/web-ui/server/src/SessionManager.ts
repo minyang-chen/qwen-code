@@ -142,6 +142,7 @@ export class SessionManager {
         userId,
       );
       await fs.mkdir(userWorkspace, { recursive: true });
+      await fs.chmod(userWorkspace, 0o777);
 
       // Create a README in the workspace
       const readmePath = path.join(userWorkspace, 'README.md');
@@ -247,7 +248,7 @@ export class SessionManager {
 
     return {
       tokenUsage: session.tokenUsage,
-      messageCount: session.client.getTurnCount(),
+      messageCount: 0, // TODO: Track message count separately
       createdAt: session.createdAt,
       lastActivity: session.lastActivity,
     };

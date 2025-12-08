@@ -235,7 +235,7 @@ export function MessageList({
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-3xl rounded-2xl px-6 py-4 shadow-md ${
+              className={`max-w-3xl rounded-2xl px-6 py-4 shadow-md text-[13px] ${
                 msg.role === 'user'
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                   : 'bg-white text-gray-900 border border-gray-200'

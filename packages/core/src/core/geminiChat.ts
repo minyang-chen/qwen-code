@@ -19,6 +19,7 @@ import type {
 import { ApiError, createUserContent } from '@google/genai';
 import { retryWithBackoff } from '../utils/retry.js';
 import type { Config } from '../config/config.js';
+import { getModelBehavior } from './modelBehavior.js';
 import {
   DEFAULT_GEMINI_FLASH_MODEL,
   getEffectiveModel,
@@ -583,25 +584,33 @@ export class GeminiChat {
       });
     }
 
-    // Stream validation logic: A stream is considered successful if:
+    // Stream validation logic with model-specific behavior
+    const modelBehavior = getModelBehavior(model);
+
+    // A stream is considered successful if:
     // 1. There's a tool call (tool calls can end without explicit finish reasons), OR
-    // 2. There's a finish reason AND we have non-empty response text
+    // 2. There's a finish reason AND (we have content OR model allows empty responses after tools)
     //
     // We throw an error only when there's no tool call AND:
     // - No finish reason, OR
-    // - Empty response text (e.g., only thoughts with no actual content)
-    if (!hasToolCall && (!hasFinishReason || !contentText)) {
-      if (!hasFinishReason) {
-        throw new InvalidStreamError(
-          'Model stream ended without a finish reason.',
-          'NO_FINISH_REASON',
-        );
-      } else {
-        throw new InvalidStreamError(
-          'Model stream ended with empty response text.',
-          'NO_RESPONSE_TEXT',
-        );
-      }
+    // - No content text AND model requires immediate response after tools
+    if (!hasToolCall && !hasFinishReason) {
+      throw new InvalidStreamError(
+        'Model stream ended without a finish reason.',
+        'NO_FINISH_REASON',
+      );
+    }
+
+    if (
+      !hasToolCall &&
+      hasFinishReason &&
+      !contentText &&
+      !modelBehavior.allowsEmptyResponseAfterTools
+    ) {
+      throw new InvalidStreamError(
+        'Model stream ended with empty response text.',
+        'NO_RESPONSE_TEXT',
+      );
     }
 
     this.history.push({

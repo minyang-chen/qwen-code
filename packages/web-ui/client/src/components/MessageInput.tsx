@@ -139,7 +139,7 @@ export function MessageInput({
             onKeyDown={handleKeyDown}
             placeholder="Type your message... (Shift+Enter for new line)"
             disabled={disabled}
-            className="flex-1 p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-500"
+            className="flex-1 p-4 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-500 text-[13px]"
             rows={3}
           />
           {disabled ? (

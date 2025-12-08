@@ -8,11 +8,9 @@ import type {
 
 export class SandboxedToolExecutor extends ToolExecutor {
   private sandbox: DockerSandbox | null = null;
-  private userId: string;
 
   constructor(config: Config, userId: string, sandbox: DockerSandbox | null) {
     super(config);
-    this.userId = userId;
     this.sandbox = sandbox;
 
     if (sandbox) {
@@ -20,7 +18,7 @@ export class SandboxedToolExecutor extends ToolExecutor {
     }
   }
 
-  async executeTools(
+  override async executeTools(
     toolRequests: ToolCallRequestInfo[],
     signal: AbortSignal,
   ): Promise<ToolCallResponseInfo[]> {
@@ -37,12 +35,11 @@ export class SandboxedToolExecutor extends ToolExecutor {
           request.name === 'run_shell_command' ||
           request.name === 'execute_bash'
         ) {
-          const command =
-            request.input?.command ||
-            (request as { args?: { command?: string } }).args?.command;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const command = (request as any).args?.command;
 
           if (!command) {
-            console.error('🐳 No command found in request:', request);
+            console.log('🐳 No command found in request:', request);
             return request;
           }
 
@@ -74,12 +71,15 @@ export class SandboxedToolExecutor extends ToolExecutor {
         // Intercept fs_write for code files - ensure they're written to workspace
         if (
           request.name === 'fs_write' &&
-          request.input?.path &&
-          this.isCodeFile(request.input.path as string)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (request as any).args?.path &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          this.isCodeFile((request as any).args.path as string)
         ) {
           console.log(
             '🐳 Writing code file to sandbox workspace:',
-            request.input.path,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (request as any).args.path,
           );
         }
 
@@ -99,7 +99,7 @@ export class SandboxedToolExecutor extends ToolExecutor {
       modifiedRequests as RequestWithSandboxResult[]
     ).filter((r) => r._sandboxResult);
     if (sandboxResults.length > 0) {
-      const results = sandboxResults.map((r) => ({
+      const results: ToolCallResponseInfo[] = sandboxResults.map((r) => ({
         callId: r.callId,
         responseParts: [
           {
@@ -113,6 +113,8 @@ export class SandboxedToolExecutor extends ToolExecutor {
           },
         ],
         resultDisplay: r._sandboxResult!.output,
+        error: undefined,
+        errorType: undefined,
       }));
       console.log(
         '🐳 Returning sandbox results:',

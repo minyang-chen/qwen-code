@@ -7,6 +7,9 @@ export interface DockerSandboxConfig {
   image: string;
   workspaceDir: string;
   userId: string;
+  network?: string;
+  memory?: string;
+  cpus?: number;
 }
 
 export class DockerSandbox {
@@ -47,9 +50,10 @@ export class DockerSandbox {
           --name ${this.containerName} \
           -v "${this.config.workspaceDir}:/workspace" \
           -w /workspace \
-          --network none \
-          --memory 1g \
-          --cpus 2 \
+          -e SANDBOX_SET_UID_GID=0 \
+          --network ${this.config.network || 'bridge'} \
+          --memory ${this.config.memory || '1g'} \
+          --cpus ${this.config.cpus || 2} \
           --security-opt no-new-privileges \
           --cap-drop ALL \
           ${this.config.image} \
@@ -85,6 +89,8 @@ export class DockerSandbox {
         'docker',
         [
           'exec',
+          '-u',
+          'root',
           '-w',
           '/workspace',
           this.containerName,

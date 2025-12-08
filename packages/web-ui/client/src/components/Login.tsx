@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function Login({ onSuccess }: { onSuccess?: () => void }) {
   const [showOpenAI, setShowOpenAI] = useState(false);
@@ -11,6 +11,31 @@ export function Login({ onSuccess }: { onSuccess?: () => void }) {
     verification_uri_complete: string;
     code_verifier: string;
   } | null>(null);
+
+  // Fetch default values from server
+  useEffect(() => {
+    async function fetchDefaults() {
+      try {
+        const res = await fetch('/api/config/individual');
+        const data = await res.json();
+
+        // Extract base URL and model from config
+        const baseUrlValue = data['OpenAI Base URL'];
+        const modelValue = data['OpenAI Model'];
+
+        if (baseUrlValue && baseUrlValue !== 'Not configured') {
+          setBaseUrl(baseUrlValue);
+        }
+        if (modelValue && modelValue !== 'Not configured') {
+          setModel(modelValue);
+        }
+      } catch (error) {
+        console.error('Failed to fetch default config:', error);
+      }
+    }
+
+    fetchDefaults();
+  }, []);
 
   const generateCodeVerifier = () => {
     const array = new Uint8Array(32);
