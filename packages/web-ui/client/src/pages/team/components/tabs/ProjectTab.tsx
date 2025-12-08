@@ -142,6 +142,7 @@ const sidebarConfig = [
 export function ProjectTab(props: ProjectTabProps) {
   const { projectSubTab, setProjectSubTab, selectedTeam, activeProject, setActiveProject, showProjectSelection, setShowProjectSelection } = props;
   const [documents, setDocuments] = React.useState<any[]>([]);
+  const [documentForm, setDocumentForm] = React.useState({ title: '', type: '', url: '', uploadDate: '', description: '' });
 
   const [showCreateForm, setShowCreateForm] = React.useState(false);
 
@@ -660,10 +661,37 @@ export function ProjectTab(props: ProjectTabProps) {
               )}
 
               {projectSubTab === 'documents' && (
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-4">Documents</h2>
-                  <p className="text-gray-500">Document management coming soon...</p>
-                </div>
+                <ProjectSection
+                  title="Documents"
+                  items={getFilteredData(documents)}
+                  fields={[
+                    { name: 'title', label: 'Title' },
+                    { name: 'type', label: 'Type' },
+                    { name: 'url', label: 'URL' },
+                    { name: 'uploadDate', label: 'Upload Date' }
+                  ]}
+                  form={documentForm}
+                  setForm={setDocumentForm}
+                  onAdd={() => {
+                    const newDoc = { 
+                      _id: Date.now().toString(), 
+                      ...documentForm, 
+                      projectId: activeProject?.projectId,
+                      uploadDate: documentForm.uploadDate || new Date().toISOString().split('T')[0]
+                    };
+                    setDocuments([...documents, newDoc]);
+                    setDocumentForm({ title: '', type: '', url: '', uploadDate: '', description: '' });
+                  }}
+                  onUpdate={(id, data) => setDocuments(documents.map(d => d._id === id ? data : d))}
+                  onDelete={(id) => setDocuments(documents.filter(d => d._id !== id))}
+                  formFields={[
+                    { name: 'title', placeholder: 'Document Title' },
+                    { name: 'type', placeholder: 'Type (e.g., PDF, Word, Excel, Presentation)' },
+                    { name: 'url', placeholder: 'Document URL or Path' },
+                    { name: 'uploadDate', placeholder: 'Upload Date', type: 'date' },
+                    { name: 'description', placeholder: 'Description', type: 'textarea' }
+                  ]}
+                />
               )}
 
               {projectSubTab === 'notes' && (
