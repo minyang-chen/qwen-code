@@ -49,6 +49,7 @@ export class SandboxedToolExecutor extends ToolExecutor {
           console.log('🐳 Executing in sandbox:', command);
 
           try {
+            // Execute in /workspace (container's working directory)
             const result = await this.sandbox!.execute(command, signal);
 
             return {
@@ -100,8 +101,18 @@ export class SandboxedToolExecutor extends ToolExecutor {
     if (sandboxResults.length > 0) {
       const results = sandboxResults.map((r) => ({
         callId: r.callId,
-        responseParts: [{ text: r._sandboxResult.output }],
-        resultDisplay: r._sandboxResult.output,
+        responseParts: [
+          {
+            functionResponse: {
+              id: r.callId,
+              name: r.name,
+              response: {
+                output: r._sandboxResult!.output,
+              },
+            },
+          },
+        ],
+        resultDisplay: r._sandboxResult!.output,
       }));
       console.log(
         '🐳 Returning sandbox results:',
