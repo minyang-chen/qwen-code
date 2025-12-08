@@ -143,6 +143,8 @@ export function ProjectTab(props: ProjectTabProps) {
   const { projectSubTab, setProjectSubTab, selectedTeam, activeProject, setActiveProject, showProjectSelection, setShowProjectSelection } = props;
   const [documents, setDocuments] = React.useState<any[]>([]);
   const [documentForm, setDocumentForm] = React.useState({ title: '', type: '', url: '', uploadDate: '', description: '' });
+  const [supportTickets, setSupportTickets] = React.useState<any[]>([]);
+  const [supportForm, setSupportForm] = React.useState({ subject: '', description: '', priority: 'medium', status: 'open', assignee: '' });
 
   const [showCreateForm, setShowCreateForm] = React.useState(false);
 
@@ -291,7 +293,7 @@ export function ProjectTab(props: ProjectTabProps) {
       case 'notes': return getFilteredData(props.notes || []).length;
       case 'research': return getFilteredData(props.research || []).length;
       case 'report': return getFilteredData(props.reports || []).length;
-      case 'support': return 0;
+      case 'support': return getFilteredData(supportTickets).length;
       default: return 0;
     }
   };
@@ -767,10 +769,38 @@ export function ProjectTab(props: ProjectTabProps) {
               )}
 
               {projectSubTab === 'support' && (
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-4">Support</h2>
-                  <p className="text-gray-500">Support features coming soon...</p>
-                </div>
+                <ProjectSection
+                  title="Support"
+                  items={getFilteredData(supportTickets)}
+                  fields={[
+                    { name: 'ticketId', label: 'Ticket ID' },
+                    { name: 'subject', label: 'Subject' },
+                    { name: 'priority', label: 'Priority' },
+                    { name: 'status', label: 'Status' }
+                  ]}
+                  form={supportForm}
+                  setForm={setSupportForm}
+                  onAdd={() => {
+                    const newTicket = { 
+                      _id: Date.now().toString(), 
+                      ...supportForm, 
+                      projectId: activeProject?.projectId,
+                      ticketId: `TKT-${Date.now().toString().slice(-6)}`,
+                      createdDate: new Date().toISOString().split('T')[0]
+                    };
+                    setSupportTickets([...supportTickets, newTicket]);
+                    setSupportForm({ subject: '', description: '', priority: 'medium', status: 'open', assignee: '' });
+                  }}
+                  onUpdate={(id, data) => setSupportTickets(supportTickets.map(t => t._id === id ? data : t))}
+                  onDelete={(id) => setSupportTickets(supportTickets.filter(t => t._id !== id))}
+                  formFields={[
+                    { name: 'subject', placeholder: 'Subject' },
+                    { name: 'description', placeholder: 'Description', type: 'textarea' },
+                    { name: 'priority', placeholder: 'Priority (e.g., Low, Medium, High, Critical)' },
+                    { name: 'status', placeholder: 'Status (e.g., Open, In Progress, Resolved, Closed)' },
+                    { name: 'assignee', placeholder: 'Assignee' }
+                  ]}
+                />
               )}
             </>
           )}
