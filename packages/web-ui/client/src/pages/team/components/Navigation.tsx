@@ -1,4 +1,3 @@
-import React from 'react';
 import { TabType, WorkspaceType } from '../types/team.types';
 
 interface NavigationProps {
@@ -8,7 +7,7 @@ interface NavigationProps {
   setWorkspaceType: (type: WorkspaceType) => void;
   username: string;
   handleLogout: () => void;
-  selectedTeam: any;
+  selectedTeam: { id: string; name: string } | null;
 }
 
 export function Navigation({
@@ -18,7 +17,7 @@ export function Navigation({
   setWorkspaceType,
   username,
   handleLogout,
-  selectedTeam
+  selectedTeam,
 }: NavigationProps) {
   const tabs: { id: TabType; label: string }[] = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -26,7 +25,7 @@ export function Navigation({
     { id: 'project', label: 'Project Task' },
     { id: 'knowledge', label: 'Knowledge' },
     { id: 'team', label: 'Team' },
-    { id: 'profile', label: 'Profile' }
+    { id: 'profile', label: 'Profile' },
   ];
 
   return (
@@ -39,25 +38,40 @@ export function Navigation({
             </h1>
             {/* Toggle Switch */}
             <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg border border-gray-300">
-              <span className={`text-xs font-medium ${workspaceType === 'private' ? 'text-blue-600' : 'text-gray-500'}`}>Private</span>
+              <span
+                className={`text-xs font-medium ${workspaceType === 'private' ? 'text-blue-600' : 'text-gray-500'}`}
+              >
+                Private
+              </span>
               <button
                 type="button"
-                onClick={() => setWorkspaceType(workspaceType === 'private' ? 'team' : 'private')}
+                onClick={() =>
+                  setWorkspaceType(
+                    workspaceType === 'private' ? 'team' : 'private',
+                  )
+                }
                 className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${workspaceType === 'team' ? 'bg-green-600' : 'bg-blue-600'}`}
               >
-                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${workspaceType === 'team' ? 'translate-x-5' : 'translate-x-1'}`} />
+                <span
+                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${workspaceType === 'team' ? 'translate-x-5' : 'translate-x-1'}`}
+                />
               </button>
-              <span className={`text-xs font-medium ${workspaceType === 'team' ? 'text-green-600' : 'text-gray-500'}`}>Team</span>
+              <span
+                className={`text-xs font-medium ${workspaceType === 'team' ? 'text-green-600' : 'text-gray-500'}`}
+              >
+                Team
+              </span>
             </div>
             <div className="flex gap-2">
-              {tabs.map(tab => (
+              {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 font-medium rounded transition-colors ${activeTab === tab.id
+                  className={`px-4 py-2 font-medium rounded transition-colors ${
+                    activeTab === tab.id
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                  }`}
                 >
                   {tab.label}
                 </button>
@@ -65,7 +79,9 @@ export function Navigation({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {username && <span className="text-gray-700 text-xs">{username}</span>}
+            {username && (
+              <span className="text-gray-700 text-xs">{username}</span>
+            )}
             <button
               onClick={handleLogout}
               className="px-3 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"

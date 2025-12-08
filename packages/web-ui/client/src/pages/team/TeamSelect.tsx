@@ -8,7 +8,7 @@ interface Team {
   memberCount?: number;
 }
 
-export function TeamSelect({ onTeamSelected, onLogout }: { onTeamSelected: () => void; onLogout?: () => void }) {
+export function TeamSelect({ onTeamSelected }: { onTeamSelected: () => void }) {
   const [myTeams, setMyTeams] = useState<Team[]>([]);
   const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ export function TeamSelect({ onTeamSelected, onLogout }: { onTeamSelected: () =>
       const data = await teamApi.listTeams();
       setMyTeams(data.myTeams || []);
       setAvailableTeams(data.availableTeams || []);
-    } catch (err) {
+    } catch {
       setError('Failed to load teams');
     } finally {
       setLoading(false);
@@ -38,7 +38,7 @@ export function TeamSelect({ onTeamSelected, onLogout }: { onTeamSelected: () =>
     try {
       await teamApi.selectTeam(teamId);
       onTeamSelected();
-    } catch (err) {
+    } catch {
       setError('Failed to select team');
     }
   };
@@ -50,7 +50,7 @@ export function TeamSelect({ onTeamSelected, onLogout }: { onTeamSelected: () =>
       if (result.team_id) {
         await handleSelectTeam(result.team_id);
       }
-    } catch (err) {
+    } catch {
       setError('Failed to create team');
     }
   };
@@ -60,7 +60,7 @@ export function TeamSelect({ onTeamSelected, onLogout }: { onTeamSelected: () =>
     try {
       await teamApi.joinTeam(selectedJoinTeam);
       await handleSelectTeam(selectedJoinTeam);
-    } catch (err) {
+    } catch {
       setError('Failed to join team');
     }
   };
@@ -81,14 +81,18 @@ export function TeamSelect({ onTeamSelected, onLogout }: { onTeamSelected: () =>
         </h2>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+            {error}
+          </div>
         )}
 
         {/* My Teams */}
         <section className="mb-6">
           <h3 className="text-xl font-semibold mb-3">My Teams</h3>
           {myTeams.length === 0 ? (
-            <p className="text-gray-500">You haven't joined any teams yet.</p>
+            <p className="text-gray-500">
+              You haven&apos;t joined any teams yet.
+            </p>
           ) : (
             <div className="space-y-2">
               {myTeams.map((team) => (
@@ -123,7 +127,10 @@ export function TeamSelect({ onTeamSelected, onLogout }: { onTeamSelected: () =>
 
         {/* Create Team Form */}
         {showCreate && (
-          <form onSubmit={handleCreateTeam} className="mb-6 p-4 bg-gray-50 rounded">
+          <form
+            onSubmit={handleCreateTeam}
+            className="mb-6 p-4 bg-gray-50 rounded"
+          >
             <h4 className="font-semibold mb-3">Create New Team</h4>
             <input
               type="text"
