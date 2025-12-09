@@ -61,3 +61,6 @@ gha-creds-*.json
 
 # Log files
 patch_output.log
+
+# NFS user data
+packages/infrastructure/nfs-data/
