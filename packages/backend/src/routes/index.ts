@@ -8,6 +8,7 @@ import {
   searchTeams,
   getUserTeams,
   deleteTeam,
+  updateTeam,
   getTeamMembers,
   addTeamMember,
   removeTeamMember,
@@ -76,6 +77,7 @@ router.post('/api/teams/join', authenticate, joinTeam);
 router.get('/api/teams/search', authenticate, searchTeams);
 router.get('/api/teams/my-teams', authenticate, getUserTeams);
 router.delete('/api/teams/delete', authenticate, deleteTeam);
+router.put('/api/teams/update', authenticate, updateTeam);
 router.post('/api/teams/signin', teamSignin);
 
 // Team member routes

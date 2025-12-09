@@ -1,6 +1,7 @@
 # Task Agent Shared Session with OpenAI Config
 
 ## Overview
+
 Task Agent now automatically authenticates using OpenAI configuration from the backend `.env` file, allowing team members to share the same chat session without additional authentication.
 
 ## How It Works
@@ -24,6 +25,7 @@ Chat interface ready
 ### Configuration Source
 
 OpenAI credentials are read from **backend** `.env` file:
+
 ```env
 OPENAI_API_KEY=your_api_key
 OPENAI_BASE_URL=http://your-endpoint/v1
@@ -37,6 +39,7 @@ OPENAI_MODEL=gpt3.5-turbo
 **File**: `packages/backend/src/routes/index.ts`
 
 Added new endpoint:
+
 ```typescript
 router.get('/api/team/openai-config', authenticate, (req, res) => {
   res.json({
@@ -76,6 +79,7 @@ router.get('/api/team/openai-config', authenticate, (req, res) => {
 ### For Administrators
 
 1. Configure OpenAI credentials in backend `.env`:
+
    ```env
    OPENAI_API_KEY=sk-...
    OPENAI_BASE_URL=https://api.openai.com/v1
@@ -83,6 +87,7 @@ router.get('/api/team/openai-config', authenticate, (req, res) => {
    ```
 
 2. Restart backend server:
+
    ```bash
    cd packages/backend
    npm run dev
@@ -117,16 +122,19 @@ Team members can share session IDs to collaborate:
 ## Troubleshooting
 
 ### "Failed to get OpenAI config"
+
 - Verify backend server is running
 - Check team authentication token is valid
 - Ensure OpenAI config is set in backend `.env`
 
 ### "Failed to authenticate"
+
 - Check web-ui server is running
 - Verify OpenAI credentials are valid
 - Check CORS settings allow requests
 
 ### Session not loading
+
 - Clear browser cookies
 - Check WebSocket connection
 - Verify session exists in database
@@ -134,11 +142,13 @@ Team members can share session IDs to collaborate:
 ## API Endpoints
 
 ### Backend (Port 3001)
+
 - `GET /api/team/openai-config` - Returns OpenAI configuration
   - Requires: Team authentication token
   - Returns: `{ apiKey, baseUrl, model }`
 
 ### Web-UI Server (Port 3000)
+
 - `POST /api/auth/login/openai` - Authenticate with OpenAI credentials
   - Body: `{ apiKey, baseUrl, model }`
   - Sets: `auth_token` cookie

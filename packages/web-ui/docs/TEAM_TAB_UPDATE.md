@@ -1,6 +1,7 @@
 # Team Tab Update
 
 ## Overview
+
 Created a dedicated "Team" tab in the Team Workspace that contains full detail forms for creating and joining teams.
 
 ## Changes Made
@@ -8,10 +9,12 @@ Created a dedicated "Team" tab in the Team Workspace that contains full detail f
 ### Tab Structure
 
 **Before:**
+
 - Workspace (with inline create/join buttons)
 - Task Agent
 
 **After:**
+
 - Workspace (files and search only)
 - Team (create and join forms)
 - Task Agent
@@ -19,12 +22,14 @@ Created a dedicated "Team" tab in the Team Workspace that contains full detail f
 ### Team Tab Features
 
 #### Create Team Form
+
 - **Team Name** (required) - Name of the team
 - **Specialization** (optional) - Team's area of focus (e.g., AI Development, Data Science)
 - **Description** (optional) - Multi-line description of team's purpose and goals
 - Full-width submit button
 
 #### Join Team Form
+
 - **Team ID** (required) - ID provided by team admin
 - Helper text explaining where to get team ID
 - Full-width submit button
@@ -91,16 +96,19 @@ Team Tab:
 ## Code Changes
 
 ### File Modified
+
 `packages/web-ui/client/src/pages/team/TeamDashboard.tsx`
 
 ### Key Changes
 
 1. **Tab Type Updated**
+
    ```typescript
    type TabType = 'workspace' | 'team' | 'task-agent';
    ```
 
 2. **New State Variables**
+
    ```typescript
    const [specialization, setSpecialization] = useState('');
    const [description, setDescription] = useState('');

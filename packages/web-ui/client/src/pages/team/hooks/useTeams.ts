@@ -20,12 +20,14 @@ export function useTeams() {
       const data = await teamApi.getUserTeams();
       if (data.teams) {
         setMyTeams(data.teams);
-        
+
         // Auto-select active team from session only on first load
         if (!initialized) {
           const activeTeamData = await teamApi.getActiveTeam();
           if (activeTeamData.activeTeamId && data.teams.length > 0) {
-            const activeTeam = data.teams.find((t: Team) => t.id === activeTeamData.activeTeamId);
+            const activeTeam = data.teams.find(
+              (t: Team) => t.id === activeTeamData.activeTeamId,
+            );
             if (activeTeam) {
               setSelectedTeam(activeTeam);
               loadTeamMembers(activeTeam.id);
@@ -34,14 +36,18 @@ export function useTeams() {
           setInitialized(true);
         }
       }
-    } catch (err) {
+    } catch {
       console.error('Failed to load teams:', err);
     }
   };
 
   const handleCreateTeam = async (setMessage: (msg: string) => void) => {
     try {
-      const data = await teamApi.createTeam(teamName, specialization, description);
+      const data = await teamApi.createTeam(
+        teamName,
+        specialization,
+        description,
+      );
       if (data.error) {
         setMessage(`Error: ${data.error.message}`);
       } else {
@@ -51,7 +57,7 @@ export function useTeams() {
         setDescription('');
         loadMyTeams();
       }
-    } catch (err) {
+    } catch {
       setMessage('Failed to create team');
     }
   };
@@ -62,9 +68,9 @@ export function useTeams() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('team_session_token')}`
+          Authorization: `Bearer ${localStorage.getItem('team_session_token')}`,
         },
-        body: JSON.stringify({ team_id: teamId })
+        body: JSON.stringify({ team_id: teamId }),
       });
       const data = await res.json();
 
@@ -76,7 +82,7 @@ export function useTeams() {
         setTeamSearchResults([]);
         loadMyTeams();
       }
-    } catch (err) {
+    } catch {
       setMessage('Failed to join team');
     }
   };
@@ -85,12 +91,15 @@ export function useTeams() {
     try {
       const data = await teamApi.searchTeams(teamSearchQuery);
       if (data.teams) setTeamSearchResults(data.teams);
-    } catch (err) {
+    } catch {
       setMessage('Team search failed');
     }
   };
 
-  const handleDeleteTeam = async (teamId: string, setMessage: (msg: string) => void) => {
+  const handleDeleteTeam = async (
+    teamId: string,
+    setMessage: (msg: string) => void,
+  ) => {
     if (!confirm('Delete this team? This action cannot be undone.')) return;
 
     try {
@@ -101,8 +110,30 @@ export function useTeams() {
         setMessage('Team deleted successfully');
         loadMyTeams();
       }
-    } catch (err) {
+    } catch {
       setMessage('Failed to delete team');
+    }
+  };
+
+  const handleUpdateTeam = async (
+    teamId: string,
+    updates: {
+      team_name?: string;
+      specialization?: string;
+      description?: string;
+    },
+    setMessage: (msg: string) => void,
+  ) => {
+    try {
+      const data = await teamApi.updateTeam(teamId, updates);
+      if (data.error) {
+        setMessage(`Error: ${data.error.message}`);
+      } else {
+        setMessage('Team updated successfully');
+        loadMyTeams();
+      }
+    } catch {
+      setMessage('Failed to update team');
     }
   };
 
@@ -114,12 +145,17 @@ export function useTeams() {
 
   const loadTeamMembers = async (teamId: string) => {
     try {
-      const res = await fetch(`http://localhost:3001/api/teams/${teamId}/members`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('team_session_token')}` }
-      });
+      const res = await fetch(
+        `http://localhost:3001/api/teams/${teamId}/members`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('team_session_token')}`,
+          },
+        },
+      );
       const data = await res.json();
       if (data.members) setTeamMembers(data.members);
-    } catch (err) {
+    } catch {
       console.error('Failed to load team members:', err);
     }
   };
@@ -128,14 +164,17 @@ export function useTeams() {
     if (!selectedTeam || !newMemberEmail.trim()) return;
 
     try {
-      const res = await fetch(`http://localhost:3001/api/teams/${selectedTeam.id}/members`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('team_session_token')}`
+      const res = await fetch(
+        `http://localhost:3001/api/teams/${selectedTeam.id}/members`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('team_session_token')}`,
+          },
+          body: JSON.stringify({ email: newMemberEmail }),
         },
-        body: JSON.stringify({ email: newMemberEmail })
-      });
+      );
       const data = await res.json();
 
       if (data.error) {
@@ -145,19 +184,27 @@ export function useTeams() {
         setNewMemberEmail('');
         loadTeamMembers(selectedTeam.id);
       }
-    } catch (err) {
+    } catch {
       setMessage('Failed to add member');
     }
   };
 
-  const handleRemoveMember = async (memberId: string, setMessage: (msg: string) => void) => {
+  const handleRemoveMember = async (
+    memberId: string,
+    setMessage: (msg: string) => void,
+  ) => {
     if (!selectedTeam || !confirm('Remove this member?')) return;
 
     try {
-      const res = await fetch(`http://localhost:3001/api/teams/${selectedTeam.id}/members/${memberId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('team_session_token')}` }
-      });
+      const res = await fetch(
+        `http://localhost:3001/api/teams/${selectedTeam.id}/members/${memberId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('team_session_token')}`,
+          },
+        },
+      );
       const data = await res.json();
 
       if (data.error) {
@@ -166,7 +213,7 @@ export function useTeams() {
         setMessage('Member removed successfully');
         loadTeamMembers(selectedTeam.id);
       }
-    } catch (err) {
+    } catch {
       setMessage('Failed to remove member');
     }
   };
@@ -195,9 +242,10 @@ export function useTeams() {
     handleJoinTeam,
     handleTeamSearch,
     handleDeleteTeam,
+    handleUpdateTeam,
     handleSelectTeam,
     loadTeamMembers,
     handleAddMember,
-    handleRemoveMember
+    handleRemoveMember,
   };
 }

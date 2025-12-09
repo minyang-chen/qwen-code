@@ -14,7 +14,14 @@ import { useCalendar } from './hooks/useCalendar';
 import { useNotifications } from './hooks/useNotifications';
 import { useKnowledge } from './hooks/useKnowledge';
 import { useProject } from './hooks/useProject';
-import { TabType, WorkspaceType, DashboardSubTab, ProjectSubTab, TeamSubTab, TeamActionTab } from './types/team.types';
+import {
+  TabType,
+  WorkspaceType,
+  DashboardSubTab,
+  ProjectSubTab,
+  TeamSubTab,
+  TeamActionTab,
+} from './types/team.types';
 
 export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -22,15 +29,21 @@ export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
   const [selectedTeamId] = useState('');
   const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
-  const [dashboardSubTab, setDashboardSubTab] = useState<DashboardSubTab>('notifications');
+  const [dashboardSubTab, setDashboardSubTab] =
+    useState<DashboardSubTab>('notifications');
   const [projectSubTab, setProjectSubTab] = useState<ProjectSubTab>('project');
   const [teamSubTab, setTeamSubTab] = useState<TeamSubTab>('my-teams');
   const [teamActionTab, setTeamActionTab] = useState<TeamActionTab>('create');
-  const [activeProject, setActiveProject] = useState<any>(null);
+  const [activeProject, setActiveProject] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [showProjectSelection, setShowProjectSelection] = useState(true);
 
   // Wrap setActiveProject to persist to localStorage
-  const handleSetActiveProject = (proj: any) => {
+  const handleSetActiveProject = (
+    proj: { id: string; name: string } | null,
+  ) => {
     setActiveProject(proj);
     project.setActiveProject(proj);
   };
@@ -44,6 +57,7 @@ export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
   const knowledge = useKnowledge();
   const project = useProject();
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   // Load initial data
   useEffect(() => {
     knowledge.loadFiles(workspaceType, selectedTeamId || undefined);
@@ -51,7 +65,7 @@ export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
     todos.loadTodos();
     setUsername(localStorage.getItem('team_username') || '');
     profile.loadProfile();
-    
+
     // Load active project from localStorage
     const savedProject = project.getActiveProject();
     if (savedProject) {
@@ -85,7 +99,9 @@ export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
           // Auto-select active team if not already selected
           const activeTeamData = await teamApi.getActiveTeam();
           if (activeTeamData.activeTeamId) {
-            const activeTeam = teams.myTeams.find((t: any) => t.id === activeTeamData.activeTeamId);
+            const activeTeam = teams.myTeams.find(
+              (t: { id: string }) => t.id === activeTeamData.activeTeamId,
+            );
             if (activeTeam) {
               teams.setSelectedTeam(activeTeam);
               project.loadProjectData(activeTeam);
@@ -99,10 +115,15 @@ export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
 
   // Load notifications when team tab is active and team is selected
   useEffect(() => {
-    if (teams.selectedTeam && activeTab === 'team' && teamSubTab === 'notifications') {
+    if (
+      teams.selectedTeam &&
+      activeTab === 'team' &&
+      teamSubTab === 'notifications'
+    ) {
       notifications.loadNotifications(teams.selectedTeam.id);
     }
   }, [teams.selectedTeam?.id, activeTab, teamSubTab]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleLogout = () => {
     teamApi.logout();
@@ -135,7 +156,10 @@ export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
 
       {activeTab === 'task-assistant' ? (
         <div className="h-[calc(100vh-80px)]">
-          <TaskAgent workspaceType={workspaceType} selectedTeamId={teams.selectedTeam?.id || ''} />
+          <TaskAgent
+            workspaceType={workspaceType}
+            selectedTeamId={teams.selectedTeam?.id || ''}
+          />
         </div>
       ) : activeTab === 'dashboard' ? (
         <DashboardTab
@@ -316,6 +340,7 @@ export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
           handleAddMember={teams.handleAddMember}
           handleRemoveMember={teams.handleRemoveMember}
           handleDeleteTeam={teams.handleDeleteTeam}
+          handleUpdateTeam={teams.handleUpdateTeam}
           teamName={teams.teamName}
           setTeamName={teams.setTeamName}
           specialization={teams.specialization}

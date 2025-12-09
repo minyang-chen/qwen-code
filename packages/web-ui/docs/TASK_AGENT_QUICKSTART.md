@@ -1,6 +1,7 @@
 # Task Agent Tab - Quick Start Guide
 
 ## Overview
+
 The Task Agent tab integrates the full Qwen Code chat interface into the Team Workspace, allowing team members to use AI assistance while managing team files and projects.
 
 ## Getting Started
@@ -8,27 +9,33 @@ The Task Agent tab integrates the full Qwen Code chat interface into the Team Wo
 ### 1. Start the Servers
 
 #### Web-UI Server (for chat functionality)
+
 ```bash
 cd packages/web-ui/server
 npm install
 npm run dev
 ```
+
 Server runs on: `http://localhost:3000`
 
 #### Backend Server (for team workspace)
+
 ```bash
 cd packages/backend
 npm install
 npm run dev
 ```
+
 Server runs on: `http://localhost:3001`
 
 #### Web-UI Client
+
 ```bash
 cd packages/web-ui/client
 npm install
 npm run dev
 ```
+
 Client runs on: `http://localhost:5173`
 
 ### 2. Access Team Workspace
@@ -61,6 +68,7 @@ Client runs on: `http://localhost:5173`
 ## Features Available in Task Agent Tab
 
 ### Chat Features
+
 - ✅ Real-time streaming responses
 - ✅ Message history
 - ✅ Session management
@@ -70,6 +78,7 @@ Client runs on: `http://localhost:5173`
 - ✅ Markdown rendering
 
 ### Settings
+
 - Model selection
 - Temperature control
 - Max tokens
@@ -77,6 +86,7 @@ Client runs on: `http://localhost:5173`
 - Tool execution preferences
 
 ### File Operations
+
 - View file contents inline
 - Syntax highlighting
 - Download files
@@ -103,16 +113,19 @@ Client runs on: `http://localhost:5173`
 ## Troubleshooting
 
 ### Chat not loading
+
 - Ensure web-ui server is running on port 3000
 - Check browser console for errors
 - Verify WebSocket connection
 
 ### Session initialization fails
+
 - Check `/api/sessions` endpoint is accessible
 - Verify authentication cookies
 - Clear browser cache and retry
 
 ### Files not showing in Workspace
+
 - Ensure backend server is running on port 3001
 - Check authentication token
 - Verify team membership
@@ -167,6 +180,7 @@ npm test
 ## Support
 
 For issues or questions:
+
 - Check the main README.md
 - Review TASK_AGENT_ARCHITECTURE.md
 - Open an issue on GitHub

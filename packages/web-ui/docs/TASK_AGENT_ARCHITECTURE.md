@@ -52,6 +52,7 @@ Tab Navigation (TeamDashboard)
 ## API Endpoints
 
 ### Workspace Tab (Team Backend - Port 3001)
+
 - `POST /api/auth/signup` - User registration
 - `POST /api/auth/login` - User authentication
 - `POST /api/teams/create` - Create team
@@ -63,6 +64,7 @@ Tab Navigation (TeamDashboard)
 - `POST /api/files/search` - Semantic search
 
 ### Task Agent Tab (Web-UI Server)
+
 - `GET /api/sessions` - Get chat sessions
 - `POST /api/sessions` - Create new session
 - `WebSocket` - Real-time chat communication
@@ -70,6 +72,7 @@ Tab Navigation (TeamDashboard)
 ## State Management
 
 ### TeamDashboard State
+
 - `activeTab`: Current tab selection
 - `showCreateTeam`: Create team modal state
 - `showJoinTeam`: Join team modal state
@@ -81,6 +84,7 @@ Tab Navigation (TeamDashboard)
 - `selectedTeamId`: Current team context
 
 ### TaskAgent State (via useChatStore)
+
 - `sessionId`: Current chat session
 - `sessions`: Available sessions
 - `messages`: Chat history

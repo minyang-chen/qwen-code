@@ -1,6 +1,7 @@
 # Task Agent Tab Integration
 
 ## Overview
+
 Added a new "Task Agent" tab to the Team Workspace that integrates the web-ui chat interface.
 
 ## Changes Made
@@ -8,14 +9,18 @@ Added a new "Task Agent" tab to the Team Workspace that integrates the web-ui ch
 ### Frontend (packages/web-ui/client)
 
 #### 1. Created TaskAgent Component
+
 **File**: `src/pages/team/TaskAgent.tsx`
+
 - Wrapper component that initializes chat sessions
 - Handles session creation and management
 - Provides loading state while initializing
 - Renders the ChatContainer component
 
 #### 2. Updated TeamDashboard Component
+
 **File**: `src/pages/team/TeamDashboard.tsx`
+
 - Added tab navigation UI with "Workspace" and "Task Agent" tabs
 - Integrated TaskAgent component
 - Maintains existing workspace functionality
@@ -24,6 +29,7 @@ Added a new "Task Agent" tab to the Team Workspace that integrates the web-ui ch
 ## Features
 
 ### Task Agent Tab
+
 - Full chat interface integration
 - Session management
 - Message history
@@ -32,6 +38,7 @@ Added a new "Task Agent" tab to the Team Workspace that integrates the web-ui ch
 - Settings panel
 
 ### Workspace Tab
+
 - Team creation and joining
 - File management (upload, download, delete)
 - Semantic search
@@ -56,5 +63,6 @@ Added a new "Task Agent" tab to the Team Workspace that integrates the web-ui ch
 ## Backend
 
 No backend changes required. The task-agent tab uses:
+
 - Web-UI server endpoints (`/api/sessions`, WebSocket)
 - Team backend endpoints remain unchanged
