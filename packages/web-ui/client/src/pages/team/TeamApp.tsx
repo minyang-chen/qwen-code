@@ -5,58 +5,91 @@ import { TeamSelect } from './TeamSelect';
 import { TeamDashboard } from './TeamDashboard';
 
 export function TeamApp() {
-  const [view, setView] = useState<'login' | 'signup' | 'select' | 'workspace'>('login');
+  const [view, setView] = useState<'login' | 'signup' | 'select' | 'workspace'>(
+    'login',
+  );
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('team_session_token');
-    const selectedTeam = localStorage.getItem('selectedTeam');
-    const activeProject = localStorage.getItem('activeProject');
-    const path = window.location.pathname;
-    
-    if (token) {
-      setIsAuthenticated(true);
-      
-      // Handle /team/workspace route - requires team and project
-      if (path === '/team/workspace') {
-        if (selectedTeam && activeProject) {
-          setView('workspace');
-        } else {
-          // No team or project selected, redirect to project selection
+    const validateAndSetView = async () => {
+      const token = localStorage.getItem('team_session_token');
+      const selectedTeam = localStorage.getItem('selectedTeam');
+      const activeProject = localStorage.getItem('activeProject');
+      const path = window.location.pathname;
+
+      if (token) {
+        // Validate token by making a test API call
+        try {
+          const response = await fetch('http://localhost:3001/api/profile', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!response.ok) {
+            // Token is invalid, clear it
+            localStorage.removeItem('team_session_token');
+            setIsAuthenticated(false);
+            setView('login');
+            if (path !== '/team/login') {
+              window.history.replaceState({}, '', '/team/login');
+            }
+            return;
+          }
+        } catch {
+          // Network error or invalid token
+          localStorage.removeItem('team_session_token');
+          setIsAuthenticated(false);
+          setView('login');
+          if (path !== '/team/login') {
+            window.history.replaceState({}, '', '/team/login');
+          }
+          return;
+        }
+
+        setIsAuthenticated(true);
+
+        // Handle /team/workspace route - requires team and project
+        if (path === '/team/workspace') {
+          if (selectedTeam && activeProject) {
+            setView('workspace');
+          } else {
+            // No team or project selected, redirect to project selection
+            setView('select');
+            window.history.replaceState({}, '', '/team/project');
+          }
+        }
+        // Handle /team/project route - team/project selection
+        else if (path === '/team/project') {
+          setView('select');
+        }
+        // Handle /team/login when authenticated - redirect to project selection
+        else if (path === '/team/login') {
           setView('select');
           window.history.replaceState({}, '', '/team/project');
         }
-      } 
-      // Handle /team/project route - team/project selection
-      else if (path === '/team/project') {
-        setView('select');
-      }
-      // Handle /team/login when authenticated - redirect to project selection
-      else if (path === '/team/login') {
-        setView('select');
-        window.history.replaceState({}, '', '/team/project');
-      }
-      // Handle signup route
-      else if (path === '/team/signup') {
-        setView('signup');
-      }
-      // Default to project selection
-      else {
-        setView('select');
-        window.history.replaceState({}, '', '/team/project');
-      }
-    } else {
-      // Not authenticated
-      if (path === '/team/signup') {
-        setView('signup');
+        // Handle signup route
+        else if (path === '/team/signup') {
+          setView('signup');
+        }
+        // Default to project selection
+        else {
+          setView('select');
+          window.history.replaceState({}, '', '/team/project');
+        }
       } else {
-        // Redirect to login for any other route
-        setView('login');
-        if (path !== '/team/login') {
-          window.history.replaceState({}, '', '/team/login');
+        // Not authenticated
+        if (path === '/team/signup') {
+          setView('signup');
+        } else {
+          // Redirect to login for any other route
+          setView('login');
+          if (path !== '/team/login') {
+            window.history.replaceState({}, '', '/team/login');
+          }
         }
       }
-    }
+    };
+
+    validateAndSetView();
 
     // Handle browser back/forward buttons
     const handlePopState = () => {
@@ -64,7 +97,7 @@ export function TeamApp() {
       const currentToken = localStorage.getItem('team_session_token');
       const currentTeam = localStorage.getItem('selectedTeam');
       const currentProject = localStorage.getItem('activeProject');
-      
+
       if (!currentToken) {
         setView('login');
         setIsAuthenticated(false);
@@ -133,12 +166,24 @@ export function TeamApp() {
   }
 
   if (view === 'select' && isAuthenticated) {
-    return <TeamSelect onTeamSelected={handleTeamSelected} onLogout={handleLogout} />;
+    return (
+      <TeamSelect onTeamSelected={handleTeamSelected} onLogout={handleLogout} />
+    );
   }
 
   if (view === 'signup') {
-    return <TeamSignup onSuccess={handleSignupSuccess} onSwitchToLogin={handleSwitchToLogin} />;
+    return (
+      <TeamSignup
+        onSuccess={handleSignupSuccess}
+        onSwitchToLogin={handleSwitchToLogin}
+      />
+    );
   }
 
-  return <TeamLogin onSuccess={handleLoginSuccess} onSwitchToSignup={handleSwitchToSignup} />;
+  return (
+    <TeamLogin
+      onSuccess={handleLoginSuccess}
+      onSwitchToSignup={handleSwitchToSignup}
+    />
+  );
 }
