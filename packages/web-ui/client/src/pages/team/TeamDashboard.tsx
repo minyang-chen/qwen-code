@@ -40,6 +40,11 @@ export function TeamDashboard({ onLogout }: { onLogout?: () => void }) {
   } | null>(null);
   const [showProjectSelection, setShowProjectSelection] = useState(true);
 
+  // Clear message when switching tabs
+  useEffect(() => {
+    setMessage('');
+  }, [activeTab]);
+
   // Wrap setActiveProject to persist to localStorage
   const handleSetActiveProject = (
     proj: { id: string; name: string } | null,
